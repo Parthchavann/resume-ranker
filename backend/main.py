@@ -1,5 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File
+from fastapi import Form
+from fastapi import Request
 from pydantic import BaseModel
 import numpy as np
 import os
@@ -7,6 +9,7 @@ from sentence_transformers import SentenceTransformer
 import PyPDF2
 import faiss
 import requests
+from typing import List
 
 app = FastAPI()
 
@@ -20,52 +23,62 @@ app.add_middleware(
 
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 VECTOR_SIZE = 384
-index = faiss.IndexFlatL2(VECTOR_SIZE)
-resume_texts = []
 
-def extract_text_from_pdf(file_path):
-    with open(file_path, 'rb') as f:
-        reader = PyPDF2.PdfReader(f)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text() or ""
+def extract_text_from_pdf_filelike(filelike):
+    reader = PyPDF2.PdfReader(filelike)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text() or ""
     return text
 
 def embed_text(text):
     return model.encode(text)
 
-@app.post("/upload_resume/")
-async def upload_resume(file: UploadFile = File(...)):
-    os.makedirs("resumes", exist_ok=True)
-    file_location = f"resumes/{file.filename}"
-    with open(file_location, "wb") as f:
-        f.write(await file.read())
-    text = extract_text_from_pdf(file_location)
-    vector = embed_text(text)
-    index.add(np.array([vector]).astype('float32'))
-    resume_id = f"{file.filename}_{len(resume_texts)}"
-    resume_texts.append({"resume_id": resume_id, "filename": file.filename, "text": text})
-    return {"resume_id": resume_id, "msg": f"Resume {file.filename} uploaded and indexed."}
-
 @app.post("/rank_resumes/")
-async def rank_resumes(jd_file: UploadFile = File(...)):
-    os.makedirs("jds", exist_ok=True)
-    jd_location = f"jds/{jd_file.filename}"
-    with open(jd_location, "wb") as f:
-        f.write(await jd_file.read())
-    jd_text = extract_text_from_pdf(jd_location)
+async def rank_resumes(
+    jd_file: UploadFile = File(...),
+    resume_files: List[UploadFile] = File(...)
+):
+    # 1. Read JD text and embed
+    jd_text = extract_text_from_pdf_filelike(await jd_file.read())
     jd_vector = embed_text(jd_text)
-    D, I = index.search(np.array([jd_vector]).astype('float32'), k=min(5, index.ntotal))
+
+    # 2. Extract text for all resumes
+    resume_texts = []
+    vectors = []
+    for idx, resume_file in enumerate(resume_files):
+        file_bytes = await resume_file.read()
+        text = extract_text_from_pdf_filelike(file_bytes)
+        vector = embed_text(text)
+        resume_id = f"{resume_file.filename}_{idx}"
+        resume_texts.append({
+            "resume_id": resume_id,
+            "filename": resume_file.filename,
+            "text": text
+        })
+        vectors.append(vector)
+
+    # 3. Build FAISS index for this batch
+    if not vectors:
+        return {"ranked_resumes": [], "job_description_text": jd_text}
+    index = faiss.IndexFlatL2(VECTOR_SIZE)
+    index.add(np.array(vectors).astype('float32'))
+
+    # 4. Rank (sort by similarity, lower = more similar for L2)
+    D, I = index.search(np.array([jd_vector]).astype('float32'), k=len(resume_texts))
     results = []
     for idx, score in zip(I[0], D[0]):
-        if idx < len(resume_texts):
-            results.append({
-                "resume_id": resume_texts[idx]["resume_id"],
-                "filename": resume_texts[idx]["filename"],
-                "score": float(score),
-                "snippet": resume_texts[idx]["text"][:300] + "...",
-                "full_text": resume_texts[idx]["text"]
-            })
+        rec = resume_texts[idx]
+        results.append({
+            "resume_id": rec["resume_id"],
+            "filename": rec["filename"],
+            "score": float(score),
+            "snippet": rec["text"][:300] + "...",
+            "full_text": rec["text"]
+        })
+    # Sort so best match is first (lowest score)
+    results = sorted(results, key=lambda x: x['score'])
+
     return {
         "ranked_resumes": results,
         "job_description_text": jd_text
@@ -101,4 +114,3 @@ async def llm_feedback(req: FeedbackRequest):
     except Exception as e:
         feedback = f"LLM Error: {e}"
     return {"feedback": feedback}
-
