@@ -439,5 +439,8 @@ function App() {
                           <FileText className="mr-2" size={18} />
                           {resume.showFeedback ? 'Hide Feedback' : 'Show Feedback'}
                         </motion.button>
-                       
-
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleDownloadFeedback(resume.feedback!, resume.filename)}
+                          className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-md shadow-md hover:bg-te
