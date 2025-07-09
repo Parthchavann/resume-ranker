@@ -5,7 +5,6 @@ import { Toaster, toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText } from 'lucide-react';
 
-// Backend URL (ensure this matches your FastAPI server's address)
 const BACKEND_URL = 'http://localhost:8000';
 
 interface ResumeFile {
@@ -36,7 +35,6 @@ function App() {
   const resumeFileInputRef = useRef<HTMLInputElement>(null);
   const jdFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Helper to check for duplicate files by name and size
   const isDuplicateFile = (newFile: File) => {
     return resumeFiles.some(
       (existingFile) =>
@@ -245,7 +243,6 @@ function App() {
           Semantic Resume Ranker
         </span>
       </h1>
-
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
         {/* Job Description Upload */}
         <motion.div
@@ -329,13 +326,11 @@ function App() {
               ref={resumeFileInputRef}
             />
           </label>
-
           {isUploadingResumes && (
             <div className="mt-4 flex items-center justify-center text-purple-600">
               <Loader2 className="animate-spin mr-2" /> Uploading resumes...
             </div>
           )}
-
           {resumeFiles.length > 0 && (
             <div className="mt-4 max-h-60 overflow-y-auto pr-2">
               <AnimatePresence mode="popLayout">
@@ -411,7 +406,6 @@ function App() {
                   <p className="text-gray-700 text-sm mb-3 line-clamp-3">
                     <span className="font-medium">Snippet:</span> {resume.snippet}
                   </p>
-
                   <div className="flex flex-wrap gap-3 mt-4">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -427,7 +421,6 @@ function App() {
                       )}
                       {feedbackLoadingResumeId === resume.resume_id ? 'Generating...' : 'Get LLM Feedback'}
                     </motion.button>
-
                     {resume.feedback && (
                       <>
                         <motion.button
@@ -440,7 +433,4 @@ function App() {
                           {resume.showFeedback ? 'Hide Feedback' : 'Show Feedback'}
                         </motion.button>
                         <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleDownloadFeedback(resume.feedback!, resume.filename)}
-                          className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-md shadow-md hover:bg-te
+                          whileHover={{ scale: 1.05
