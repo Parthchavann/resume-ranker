@@ -133,6 +133,7 @@ function App() {
     toast.info('Job Description cleared.');
   };
 
+  // UPDATED: This sends BOTH the JD and all resumes as FormData to the backend
   const handleRankResumes = async () => {
     if (!jobDescriptionFile) {
       toast.error('Please upload a Job Description PDF first.');
@@ -149,6 +150,9 @@ function App() {
 
     const formData = new FormData();
     formData.append('jd_file', jobDescriptionFile);
+    resumeFiles.forEach((resume) => {
+      formData.append('resume_files', resume.file); // <-- field name must match backend!
+    });
 
     try {
       const response = await fetch(`${BACKEND_URL}/rank_resumes/`, {
