@@ -1,8 +1,11 @@
+// src/App.tsx
+
 import React, { useState, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText } from 'lucide-react';
+import { Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy } from 'lucide-react';
 
+// Backend URL (ensure this matches your FastAPI server's address)
 const BACKEND_URL = 'http://localhost:8000';
 
 interface ResumeFile {
@@ -33,6 +36,7 @@ function App() {
   const resumeFileInputRef = useRef<HTMLInputElement>(null);
   const jdFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Helper to check for duplicate files by name and size
   const isDuplicateFile = (newFile: File) => {
     return resumeFiles.some(
       (existingFile) =>
@@ -86,7 +90,7 @@ function App() {
         uploadedResumeDetails.push({
           id: data.resume_id,
           file: file,
-          textPreview: `Successfully uploaded: ${file.name}`,
+          textPreview: `Successfully uploaded: ${file.name}`
         });
         toast.success(`Resume "${file.name}" uploaded successfully!`);
         successfulUploads++;
@@ -234,21 +238,26 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 p-4 sm:p-8 font-inter text-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-indigo-50 to-fuchsia-100 p-4 sm:p-8 font-inter text-gray-800">
       <Toaster position="top-center" />
-      <h1 className="text-4xl sm:text-5xl font-extrabold text-center text-blue-800 mb-10 drop-shadow-md">
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-          Semantic Resume Ranker
-        </span>
-      </h1>
+      {/* HEADER */}
+      <motion.h1
+        initial={{ opacity: 0, y: -40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="text-4xl sm:text-5xl font-extrabold text-center mb-12 drop-shadow-lg bg-gradient-to-r from-blue-600 via-purple-600 to-fuchsia-500 bg-clip-text text-transparent"
+      >
+        <Trophy className="inline-block w-10 h-10 text-yellow-400 mr-2" /> Semantic Resume Ranker
+      </motion.h1>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-        {/* Job Description Upload */}
+      {/* FILE UPLOAD AREA */}
+      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        {/* JD UPLOAD */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white p-6 rounded-xl shadow-lg border border-blue-200"
+          className="bg-white bg-opacity-80 backdrop-blur-md border border-blue-200 p-6 rounded-3xl shadow-2xl hover:shadow-blue-200 transition-shadow"
         >
           <h2 className="text-2xl font-bold text-blue-700 mb-4 flex items-center">
             <FileText className="mr-2" /> Job Description
@@ -294,12 +303,12 @@ function App() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Resumes Upload */}
+        {/* RESUMES UPLOAD */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-white p-6 rounded-xl shadow-lg border border-purple-200"
+          className="bg-white bg-opacity-80 backdrop-blur-md border border-purple-200 p-6 rounded-3xl shadow-2xl hover:shadow-purple-200 transition-shadow"
         >
           <h2 className="text-2xl font-bold text-purple-700 mb-4 flex items-center">
             <FileText className="mr-2" /> Resumes
@@ -360,61 +369,73 @@ function App() {
         </motion.div>
       </div>
 
-      {/* Rank Resumes Button */}
+      {/* RANK BUTTON */}
       <motion.button
-        whileHover={{ scale: 1.02 }}
+        whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleRankResumes}
         disabled={!jobDescriptionFile || resumeFiles.length === 0 || isRanking || isUploadingResumes}
-        className="w-full max-w-md mx-auto bg-gradient-to-r from-green-500 to-teal-500 text-white py-4 px-6 rounded-lg text-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500"
+        className="w-full max-w-md mx-auto bg-gradient-to-r from-fuchsia-500 via-blue-500 to-cyan-500 text-white py-4 px-8 rounded-2xl text-xl font-bold shadow-lg hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        aria-label="Rank Resumes"
       >
         {isRanking ? (
           <>
-            <Loader2 className="animate-spin mr-3" /> Ranking Resumes...
+            <Loader2 className="animate-spin mr-2" /> Ranking Resumes...
           </>
         ) : (
           <>
-            <MessageSquareText className="mr-3" /> Rank Resumes
+            <MessageSquareText className="mr-2" /> Rank Resumes
           </>
         )}
       </motion.button>
 
-      {/* Ranked Results Display */}
-      {rankedResumes.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="max-w-6xl mx-auto mt-12 bg-white p-8 rounded-xl shadow-2xl border border-gray-200"
-        >
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Ranked Resumes</h2>
-          <div className="space-y-6">
-            <AnimatePresence>
+      {/* RANKED RESULTS */}
+      <AnimatePresence>
+        {rankedResumes.length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.25 }}
+            className="max-w-5xl mx-auto mt-12"
+          >
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Ranked Resumes</h2>
+            <div className="space-y-8">
               {rankedResumes.map((resume, index) => (
                 <motion.div
                   key={resume.resume_id}
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg shadow-md border border-blue-100 relative overflow-hidden"
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  transition={{ duration: 0.45, delay: index * 0.07 }}
+                  className={`relative p-8 rounded-3xl shadow-xl border-2 ${
+                    index === 0
+                      ? 'bg-gradient-to-br from-yellow-100/60 via-purple-100/60 to-white border-yellow-300 ring-2 ring-yellow-400'
+                      : 'bg-white/80 border-gray-200'
+                  }`}
                 >
-                  <div className="absolute top-0 right-0 bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-bl-lg">
-                    Score: {resume.score}%
+                  {index === 0 && (
+                    <span className="absolute top-2 right-2 flex items-center gap-1 text-yellow-600 font-semibold">
+                      <Trophy className="w-6 h-6" /> Top Ranked!
+                    </span>
+                  )}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <h3 className="text-lg font-bold mb-1 text-blue-800">{index + 1}. {resume.filename}</h3>
+                      <p className="text-gray-700 text-sm mb-3 line-clamp-3"><span className="font-medium">Snippet:</span> {resume.snippet || "No snippet available."}</p>
+                    </div>
+                    <span className="px-4 py-1 rounded-full bg-gradient-to-r from-blue-500 to-fuchsia-500 text-white text-lg font-bold shadow-lg">
+                      Score: {Number(resume.score).toFixed(2)}%
+                    </span>
                   </div>
-                  <h3 className="text-xl font-semibold text-blue-800 mb-2 truncate pr-20">
-                    {index + 1}. {resume.filename}
-                  </h3>
-                  <p className="text-gray-700 text-sm mb-3 line-clamp-3">
-                    <span className="font-medium">Snippet:</span> {resume.snippet}
-                  </p>
-
+                  {/* Actions */}
                   <div className="flex flex-wrap gap-3 mt-4">
+                    {/* LLM Feedback button */}
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.06 }}
+                      whileTap={{ scale: 0.96 }}
                       onClick={() => handleGetLLMFeedback(resume)}
                       disabled={feedbackLoadingResumeId === resume.resume_id}
-                      className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-md shadow-md hover:bg-purple-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {feedbackLoadingResumeId === resume.resume_id ? (
                         <Loader2 className="animate-spin mr-2" size={18} />
@@ -423,38 +444,38 @@ function App() {
                       )}
                       {feedbackLoadingResumeId === resume.resume_id ? 'Generating...' : 'Get LLM Feedback'}
                     </motion.button>
-
+                    {/* Show/Hide and Download buttons */}
                     {resume.feedback && (
                       <>
                         <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                          whileHover={{ scale: 1.06 }}
+                          whileTap={{ scale: 0.96 }}
                           onClick={() => toggleFeedbackVisibility(resume.resume_id)}
-                          className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-md shadow-md hover:bg-gray-700 transition-colors duration-200"
+                          className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition-colors duration-200"
                         >
                           <FileText className="mr-2" size={18} />
                           {resume.showFeedback ? 'Hide Feedback' : 'Show Feedback'}
                         </motion.button>
                         <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                          whileHover={{ scale: 1.06 }}
+                          whileTap={{ scale: 0.96 }}
                           onClick={() => handleDownloadFeedback(resume.feedback!, resume.filename)}
-                          className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-md shadow-md hover:bg-teal-700 transition-colors duration-200"
+                          className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg shadow-md hover:bg-teal-700 transition-colors duration-200"
                         >
                           <Download className="mr-2" size={18} /> Download Feedback
                         </motion.button>
                       </>
                     )}
                   </div>
-
+                  {/* Feedback Animated Collapse */}
                   <AnimatePresence>
                     {resume.showFeedback && resume.feedback && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="mt-5 p-4 bg-gray-50 border border-gray-200 rounded-md text-gray-700 whitespace-pre-wrap shadow-inner"
+                        transition={{ duration: 0.4 }}
+                        className="mt-5 p-4 bg-white/70 border border-gray-200 rounded-xl text-gray-700 whitespace-pre-wrap shadow-inner"
                       >
                         <h4 className="font-semibold text-gray-800 mb-2">LLM Feedback:</h4>
                         {resume.feedback}
@@ -463,10 +484,20 @@ function App() {
                   </AnimatePresence>
                 </motion.div>
               ))}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-      )}
+            </div>
+          </motion.div>
+        ) : (
+          // Empty state
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="max-w-xl mx-auto mt-24 text-center bg-white/60 backdrop-blur-md rounded-3xl shadow-lg p-10"
+          >
+            <h3 className="text-2xl font-bold text-gray-700 mb-2">No resumes ranked yet</h3>
+            <p className="text-gray-500">Upload a job description and some resumes, then click "Rank Resumes" to see results here.</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
