@@ -133,7 +133,6 @@ function App() {
     toast.info('Job Description cleared.');
   };
 
-  // UPDATED: This sends BOTH the JD and all resumes as FormData to the backend
   const handleRankResumes = async () => {
     if (!jobDescriptionFile) {
       toast.error('Please upload a Job Description PDF first.');
@@ -150,9 +149,6 @@ function App() {
 
     const formData = new FormData();
     formData.append('jd_file', jobDescriptionFile);
-    resumeFiles.forEach((resume) => {
-      formData.append('resume_files', resume.file); // <-- field name must match backend!
-    });
 
     try {
       const response = await fetch(`${BACKEND_URL}/rank_resumes/`, {
@@ -403,6 +399,18 @@ function App() {
             className="max-w-5xl mx-auto mt-12"
           >
             <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Ranked Resumes</h2>
+            {/* Score explanation legend */}
+            <div className="mb-6 flex items-center justify-center gap-2 text-sm text-gray-600">
+              <span className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded-full bg-gradient-to-r from-green-400 to-green-600 inline-block mr-1"></span>
+                <span className="font-semibold">High Score</span>: Strong resume match to job description
+              </span>
+              <span className="mx-3">|</span>
+              <span className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded-full bg-gradient-to-r from-red-400 to-red-600 inline-block mr-1"></span>
+                <span className="font-semibold">Low Score</span>: Weak match, resume less relevant
+              </span>
+            </div>
             <div className="space-y-8">
               {rankedResumes.map((resume, index) => (
                 <motion.div
@@ -427,9 +435,28 @@ function App() {
                       <h3 className="text-lg font-bold mb-1 text-blue-800">{index + 1}. {resume.filename}</h3>
                       <p className="text-gray-700 text-sm mb-3 line-clamp-3"><span className="font-medium">Snippet:</span> {resume.snippet || "No snippet available."}</p>
                     </div>
-                    <span className="px-4 py-1 rounded-full bg-gradient-to-r from-blue-500 to-fuchsia-500 text-white text-lg font-bold shadow-lg">
-                      Score: {Number(resume.score).toFixed(2)}%
-                    </span>
+                    {/* Score badge with tooltip and color */}
+                    <div className="relative group">
+                      <span
+                        className={`px-4 py-1 rounded-full text-white text-lg font-bold shadow-lg cursor-pointer
+                          ${
+                            Number(resume.score) > 75
+                              ? 'bg-gradient-to-r from-green-400 to-green-600'
+                              : Number(resume.score) > 40
+                              ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
+                              : 'bg-gradient-to-r from-red-400 to-red-600'
+                          }`
+                        }
+                        tabIndex={0}
+                      >
+                        Score: {Number(resume.score).toFixed(2)}%
+                        <span className="ml-1 align-middle text-xs">ⓘ</span>
+                      </span>
+                      <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-lg text-xs text-gray-800 opacity-0 group-hover:opacity-100 group-focus:opacity-100 pointer-events-none transition-opacity">
+                        Higher scores mean the resume matches the job description more closely.<br/>
+                        Lower scores = weaker match.
+                      </div>
+                    </div>
                   </div>
                   {/* Actions */}
                   <div className="flex flex-wrap gap-3 mt-4">
