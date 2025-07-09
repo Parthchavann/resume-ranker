@@ -3,6 +3,5 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Inter', sans-serif;
+  @apply bg-gradient-to-br from-sky-50 via-indigo-50 to-fuchsia-100;
 }
-
