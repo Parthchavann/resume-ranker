@@ -1,5 +1,3 @@
-// src/App.tsx
-
 import React, { useState, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -88,7 +86,7 @@ function App() {
         uploadedResumeDetails.push({
           id: data.resume_id,
           file: file,
-          textPreview: `Successfully uploaded: ${file.name}`
+          textPreview: `Successfully uploaded: ${file.name}`,
         });
         toast.success(`Resume "${file.name}" uploaded successfully!`);
         successfulUploads++;
@@ -243,6 +241,7 @@ function App() {
           Semantic Resume Ranker
         </span>
       </h1>
+
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
         {/* Job Description Upload */}
         <motion.div
@@ -326,11 +325,13 @@ function App() {
               ref={resumeFileInputRef}
             />
           </label>
+
           {isUploadingResumes && (
             <div className="mt-4 flex items-center justify-center text-purple-600">
               <Loader2 className="animate-spin mr-2" /> Uploading resumes...
             </div>
           )}
+
           {resumeFiles.length > 0 && (
             <div className="mt-4 max-h-60 overflow-y-auto pr-2">
               <AnimatePresence mode="popLayout">
@@ -406,6 +407,7 @@ function App() {
                   <p className="text-gray-700 text-sm mb-3 line-clamp-3">
                     <span className="font-medium">Snippet:</span> {resume.snippet}
                   </p>
+
                   <div className="flex flex-wrap gap-3 mt-4">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -421,6 +423,7 @@ function App() {
                       )}
                       {feedbackLoadingResumeId === resume.resume_id ? 'Generating...' : 'Get LLM Feedback'}
                     </motion.button>
+
                     {resume.feedback && (
                       <>
                         <motion.button
@@ -433,4 +436,39 @@ function App() {
                           {resume.showFeedback ? 'Hide Feedback' : 'Show Feedback'}
                         </motion.button>
                         <motion.button
-                          whileHover={{ scale: 1.05
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleDownloadFeedback(resume.feedback!, resume.filename)}
+                          className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-md shadow-md hover:bg-teal-700 transition-colors duration-200"
+                        >
+                          <Download className="mr-2" size={18} /> Download Feedback
+                        </motion.button>
+                      </>
+                    )}
+                  </div>
+
+                  <AnimatePresence>
+                    {resume.showFeedback && resume.feedback && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="mt-5 p-4 bg-gray-50 border border-gray-200 rounded-md text-gray-700 whitespace-pre-wrap shadow-inner"
+                      >
+                        <h4 className="font-semibold text-gray-800 mb-2">LLM Feedback:</h4>
+                        {resume.feedback}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+export default App;
