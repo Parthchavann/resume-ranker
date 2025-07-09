@@ -1,11 +1,10 @@
-// src/App.tsx
-
 import React, { useState, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy } from 'lucide-react';
+import {
+  Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy, Info
+} from 'lucide-react';
 
-// Backend URL (ensure this matches your FastAPI server's address)
 const BACKEND_URL = 'http://localhost:8000';
 
 interface ResumeFile {
@@ -237,6 +236,22 @@ function App() {
     );
   };
 
+  // ---- USER CLARIFICATION COMPONENT ----
+  function ScoreClarification() {
+    return (
+      <div className="flex items-center justify-center gap-6 my-6 bg-white/80 border border-gray-200 rounded-2xl px-5 py-3 shadow-sm max-w-3xl mx-auto">
+        <Info className="w-6 h-6 text-blue-500 mr-2 shrink-0" />
+        <div className="text-sm sm:text-base text-gray-700">
+          <span className="font-semibold text-green-700">Lower Score</span> means <span className="font-semibold">your resume is a <u>better match</u></span> for the job description.<br className="hidden sm:inline" />
+          <span className="font-semibold text-rose-700">Higher Score</span> means your resume is <span className="font-semibold">less relevant</span> to the job description.
+          <br />
+          <span className="text-xs text-gray-500">Scores are calculated by measuring how close your resume is to the job description using advanced AI. Don’t worry if the numbers look small—just aim for the lowest score for the strongest match!</span>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- RENDER ----
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-indigo-50 to-fuchsia-100 p-4 sm:p-8 font-inter text-gray-800">
       <Toaster position="top-center" />
@@ -369,6 +384,9 @@ function App() {
         </motion.div>
       </div>
 
+      {/* CLARIFICATION */}
+      <ScoreClarification />
+
       {/* RANK BUTTON */}
       <motion.button
         whileHover={{ scale: 1.03 }}
@@ -399,18 +417,6 @@ function App() {
             className="max-w-5xl mx-auto mt-12"
           >
             <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Ranked Resumes</h2>
-            {/* Score explanation legend */}
-            <div className="mb-6 flex items-center justify-center gap-2 text-sm text-gray-600">
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded-full bg-gradient-to-r from-green-400 to-green-600 inline-block mr-1"></span>
-                <span className="font-semibold">High Score</span>: Strong resume match to job description
-              </span>
-              <span className="mx-3">|</span>
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded-full bg-gradient-to-r from-red-400 to-red-600 inline-block mr-1"></span>
-                <span className="font-semibold">Low Score</span>: Weak match, resume less relevant
-              </span>
-            </div>
             <div className="space-y-8">
               {rankedResumes.map((resume, index) => (
                 <motion.div
@@ -435,28 +441,9 @@ function App() {
                       <h3 className="text-lg font-bold mb-1 text-blue-800">{index + 1}. {resume.filename}</h3>
                       <p className="text-gray-700 text-sm mb-3 line-clamp-3"><span className="font-medium">Snippet:</span> {resume.snippet || "No snippet available."}</p>
                     </div>
-                    {/* Score badge with tooltip and color */}
-                    <div className="relative group">
-                      <span
-                        className={`px-4 py-1 rounded-full text-white text-lg font-bold shadow-lg cursor-pointer
-                          ${
-                            Number(resume.score) > 75
-                              ? 'bg-gradient-to-r from-green-400 to-green-600'
-                              : Number(resume.score) > 40
-                              ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
-                              : 'bg-gradient-to-r from-red-400 to-red-600'
-                          }`
-                        }
-                        tabIndex={0}
-                      >
-                        Score: {Number(resume.score).toFixed(2)}%
-                        <span className="ml-1 align-middle text-xs">ⓘ</span>
-                      </span>
-                      <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-lg text-xs text-gray-800 opacity-0 group-hover:opacity-100 group-focus:opacity-100 pointer-events-none transition-opacity">
-                        Higher scores mean the resume matches the job description more closely.<br/>
-                        Lower scores = weaker match.
-                      </div>
-                    </div>
+                    <span className={`px-4 py-1 rounded-full bg-gradient-to-r from-blue-500 to-fuchsia-500 text-white text-lg font-bold shadow-lg`}>
+                      Score: {Number(resume.score).toFixed(2)}
+                    </span>
                   </div>
                   {/* Actions */}
                   <div className="flex flex-wrap gap-3 mt-4">
