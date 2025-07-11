@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import ProfessionalFooter from '../components/ProfessionalFooter';
-import { EnhancedProgress } from '../components/EnhancedProgress';
-import { DarkModeToggle } from '../components/DarkModeToggle';
+import ProfessionalFooter from '../components/ProfessionalFooter.tsx';
+import { EnhancedProgress } from '../components/EnhancedProgress.tsx';
+import { DarkModeToggle } from '../components/DarkModeToggle.tsx';
 import {
   Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy, Info,
   Sparkles, Zap, Star, Crown, Award, ChevronDown, Eye, EyeOff, Rocket, CheckCircle, Target, BarChart3, Brain,
