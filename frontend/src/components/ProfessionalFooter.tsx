@@ -1,4 +1,5 @@
 import React from "react";
+import ProfessionalFooter from '../components/ProfessionalFooter';
 import { motion } from "framer-motion";
 import { ShieldCheck, Trophy, Handshake, Sparkles } from "lucide-react";
 
