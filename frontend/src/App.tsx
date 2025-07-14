@@ -1049,117 +1049,91 @@ const ResumeRanker = () => {
                       </div>
 
                       {/* Score Visualization */}
-                      {/* Score Visualization */}
-<motion.footer
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ duration: 0.8, delay: 1 }}
-  className="relative z-10 mt-auto bg-white/5 dark:bg-gray-900/50 backdrop-blur-xl border-t border-white/10 dark:border-gray-700/50"
->
-  <div className="max-w-6xl mx-auto px-4 py-12">
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-      <div className="md:col-span-2">
-        <div className="flex items-center gap-3 mb-4">
-          <Trophy className="w-8 h-8 text-amber-400" />
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-            Resume Ranker
-          </h3>
-        </div>
-        <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-          Leverage cutting-edge AI technology to revolutionize your hiring process.
-          Identify top talent faster with intelligent resume analysis and ranking.
-        </p>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-            <CheckCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">AI-Powered</span>
-          </div>
-          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-            <Zap className="w-5 h-5" />
-            <span className="text-sm font-medium">Lightning Fast</span>
-          </div>
-          <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
-            <Target className="w-5 h-5" />
-            <span className="text-sm font-medium">Precision Matching</span>
-          </div>
-        </div>
-      </div>
+                 <div className="lg:col-span-1">
+                        <div className="bg-gray-50/50 dark:bg-gray-700/30 rounded-2xl p-6">
+                          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">
+                            Match Analysis
+                          </h4>
+                          
+                          <div className="relative w-32 h-32 mx-auto mb-6">
+                            <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
+                              <path
+                                d="M18 2.0845
+                                  a 15.9155 15.9155 0 0 1 0 31.831
+                                  a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeDasharray={`${100 - resume.score * 100}, 100`}
+                                className={`text-gradient ${getScoreColor(resume.score, index)}`}
+                              />
+                              <path
+                                d="M18 2.0845
+                                  a 15.9155 15.9155 0 0 1 0 31.831
+                                  a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeDasharray="100, 100"
+                                className="text-gray-200 dark:text-gray-700"
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                                  {(100 - resume.score * 100).toFixed(0)}%
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">Match</div>
+                              </div>
+                            </div>
+                          </div>
 
-      <div>
-        <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Features</h4>
-        <ul className="space-y-2">
-          <li className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-            <Brain className="w-4 h-4 text-purple-500" />
-            <span className="text-sm">AI Analysis</span>
-          </li>
-          <li className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-            <BarChart3 className="w-4 h-4 text-blue-500" />
-            <span className="text-sm">Smart Ranking</span>
-          </li>
-          <li className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-            <MessageSquareText className="w-4 h-4 text-green-500" />
-            <span className="text-sm">Detailed Feedback</span>
-          </li>
-          <li className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-            <Download className="w-4 h-4 text-orange-500" />
-            <span className="text-sm">Export Results</span>
-          </li>
-        </ul>
-      </div>
-
-      <div>
-        <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Stats</h4>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600 dark:text-gray-300">Resumes Analyzed</span>
-            <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-              {resumeFiles.length}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600 dark:text-gray-300">Rankings Complete</span>
-            <span className="text-sm font-bold text-green-600 dark:text-green-400">
-              {rankedResumes.length}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600 dark:text-gray-300">Feedback Generated</span>
-            <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
-              {rankedResumes.filter(r => r.feedback).length}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* ✅ Closing div that was missing */}
-  </div>
-
-  <div className="border-t border-white/10 dark:border-gray-700/50 mt-8 pt-8">
-    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          © 2024 Resume Ranker. Built with AI precision.
-        </p>
-      </div>
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-          <Heart className="w-4 h-4 text-red-400" />
-          <span>Made for recruiters</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-          <Users className="w-4 h-4 text-blue-400" />
-          <span>Trusted by teams</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-          <Clock className="w-4 h-4 text-green-400" />
-          <span>Save hours daily</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</motion.footer>
-
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-gray-600 dark:text-gray-400">Relevance</span>
+                              <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-4 h-4 ${
+                                      i < Math.ceil((100 - resume.score * 100) / 20)
+                                        ? 'text-amber-400 fill-current'
+                                        : 'text-gray-300 dark:text-gray-600'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+                              <div className="flex items-center justify-center gap-2 text-sm">
+                                {index === 0 && (
+                                  <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full font-medium">
+                                    Top Match
+                                  </span>
+                                )}
+                                {index > 0 && index < 3 && (
+                                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full font-medium">
+                                    Strong Match
+                                  </span>
+                                )}
+                                {index >= 3 && (
+                                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full font-medium">
+                                    Good Match
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Footer */}
         <motion.footer
