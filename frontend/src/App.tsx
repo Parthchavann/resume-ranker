@@ -31,7 +31,13 @@ type Theme = 'light' | 'dark' | 'system';
 
 // Simple Progress Component
 
-const Progress = ({ value = 0, className = "", showPercentage = false, variant = "default", animated = false }: {
+const Progress = ({
+  value = 0,
+  className = "",
+  showPercentage = false,
+  variant = "default",
+  animated = false
+}: {
   value?: number;
   className?: string;
   showPercentage?: boolean;
@@ -39,28 +45,32 @@ const Progress = ({ value = 0, className = "", showPercentage = false, variant =
   animated?: boolean;
 }) => {
   const [displayValue, setDisplayValue] = useState(0);
-  
+
   useEffect(() => {
     const timer = setTimeout(() => setDisplayValue(value), 100);
     return () => clearTimeout(timer);
   }, [value]);
 
   const colors = {
-    default: "bg-blue-500",
-    success: "bg-green-500", 
-    warning: "bg-yellow-500",
-    error: "bg-red-500"
+    default: "from-blue-500 to-indigo-500",
+    success: "from-green-400 to-emerald-500",
+    warning: "from-yellow-400 to-yellow-500",
+    error: "from-red-500 to-rose-500"
   };
 
   return (
-    <div className={`relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden ${className}`}>
-      <div 
-        className={`h-full transition-all duration-1000 ease-out ${colors[variant]} ${animated ? 'animate-pulse' : ''}`}
+    <div
+      className={`relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden shadow-inner ${className}`}
+    >
+      <div
+        className={`h-full transition-all duration-1000 ease-out bg-gradient-to-r ${colors[variant]} ${
+          animated ? "animate-pulse" : ""
+        } rounded-full`}
         style={{ width: `${displayValue}%` }}
       />
       {showPercentage && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs font-bold text-white drop-shadow-md">
+          <span className="text-xs font-bold text-white drop-shadow-sm">
             {Math.round(displayValue)}%
           </span>
         </div>
@@ -68,6 +78,7 @@ const Progress = ({ value = 0, className = "", showPercentage = false, variant =
     </div>
   );
 };
+
 
 const ResumeRanker = () => {
   const [resumeFiles, setResumeFiles] = useState<ResumeFile[]>([]);
