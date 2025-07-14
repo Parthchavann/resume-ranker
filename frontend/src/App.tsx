@@ -1049,90 +1049,86 @@ const ResumeRanker = () => {
                       </div>
 
                       {/* Score Visualization */}
-                      <div className="lg:col-span-1">
-                        <div className="bg-gray-50/50 dark:bg-gray-700/30 rounded-2xl p-6">
-                          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">
-                            Match Analysis
-                          </h4>
-                          
-                          <div className="relative w-32 h-32 mx-auto mb-6">
-                            <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                              <path
-                                d="M18 2.0845
-                                  a 15.9155 15.9155 0 0 1 0 31.831
-                                  a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeDasharray={`${100 - resume.score * 100}, 100`}
-                                className={`text-gradient ${getScoreColor(resume.score, index)}`}
-                              />
-                              <path
-                                d="M18 2.0845
-                                  a 15.9155 15.9155 0 0 1 0 31.831
-                                  a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeDasharray="100, 100"
-                                className="text-gray-200 dark:text-gray-700"
-                              />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                                  {(100 - resume.score * 100).toFixed(0)}%
-                                </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">Match</div>
-                              </div>
-                            </div>
-                          </div>
+                      {/* Score Visualization */}
+<div className="lg:col-span-1">
+  <div className="bg-gray-50/50 dark:bg-gray-700/30 rounded-2xl p-6">
+    <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">
+      Match Analysis
+    </h4>
+    
+    <div className="relative w-32 h-32 mx-auto mb-6">
+      <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
+        <path
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeDasharray={`${100 - Math.abs(resume.score * 100)}, 100`}
+          className={`text-gradient ${getScoreColor(resume.score, index)}`}
+        />
+        <path
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeDasharray="100, 100"
+          className="text-gray-200 dark:text-gray-700"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+            {(Math.abs(resume.score * 100)).toFixed(0)}%
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">Match</div>
+        </div>
+      </div>
+    </div>
 
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">Relevance</span>
-                              <div className="flex items-center gap-1">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`w-4 h-4 ${
-                                      i < Math.ceil((100 - resume.score * 100) / 20)
-                                        ? 'text-amber-400 fill-current'
-                                        : 'text-gray-300 dark:text-gray-600'
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
-                              <div className="flex items-center justify-center gap-2 text-sm">
-                                {index === 0 && (
-                                  <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full font-medium">
-                                    Top Match
-                                  </span>
-                                )}
-                                {index > 0 && index < 3 && (
-                                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full font-medium">
-                                    Strong Match
-                                  </span>
-                                )}
-                                {index >= 3 && (
-                                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full font-medium">
-                                    Good Match
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-600 dark:text-gray-400">Relevance</span>
+        <div className="flex items-center gap-1">
+          {[...Array(5)].map((_, i) => (
+            <Star
+              key={i}
+              className={`w-4 h-4 ${
+                i < 5 - Math.floor(Math.abs(resume.score * 5))
+                  ? 'text-amber-400 fill-current'
+                  : 'text-gray-300 dark:text-gray-600'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+      
+      <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+        <div className="flex items-center justify-center gap-2 text-sm">
+          {index === 0 && (
+            <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full font-medium">
+              Top Match
+            </span>
           )}
+          {index > 0 && index < 3 && (
+            <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full font-medium">
+              Strong Match
+            </span>
+          )}
+          {index >= 3 && (
+            <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full font-medium">
+              Good Match
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
         </AnimatePresence>
 
         {/* Footer */}
