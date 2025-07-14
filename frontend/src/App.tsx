@@ -31,103 +31,43 @@ type Theme = 'light' | 'dark' | 'system';
 
 // Simple Progress Component
 
-interface ProgressProps {
+const Progress = ({ value = 0, className = "", showPercentage = false, variant = "default", animated = false }: {
   value?: number;
   className?: string;
   showPercentage?: boolean;
-  variant?: "default" | "success" | "warning" | "error" | "info"; // Added 'info' variant
+  variant?: "default" | "success" | "warning" | "error";
   animated?: boolean;
-}
-const Progress = ({
-  value = 0,
-  className = "",
-  showPercentage = false,
-  variant = "default",
-  animated = false,
-}: ProgressProps) => {
+}) => {
   const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setDisplayValue(value), 100);
+    return () => clearTimeout(timer);
+  }, [value]);
 
-  seEffect(() => {
-    // Animate the display value for a smoother transition
-    const animationDuration = 500; // milliseconds
-    const startTime = performance.now();
-
-    const animateProgress = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / animationDuration, 1); // 0 to 1
-      setDisplayValue(displayValue + (value - displayValue) * progress);
-
-      if (progress < 1) {
-        requestAnimationFrame(animateProgress);
-      } else {
-        setDisplayValue(value); // Ensure it settles at the exact value
-      }
-    };
-
-    requestAnimationFrame(animateProgress);
-
-    // No need for clearTimeout with requestAnimationFrame, but keeping the principle
-    // if a timeout were used for a simple delayed set.
-    // For a simple delayed set, the original useEffect was fine:
-    // const timer = setTimeout(() => setDisplayValue(value), 100);
-    // return () => clearTimeout(timer);
-
-  }, [value, displayValue]); // Added displayValue to dependency array to ensure continuous animation if value changes rapidly
-
-  const baseTrackColor = "bg-gray-200 dark:bg-gray-700";
-  const barColors = {
-    default: "bg-gradient-to-r from-blue-400 to-indigo-500",
-    success: "bg-gradient-to-r from-green-400 to-emerald-500",
-    warning: "bg-gradient-to-r from-yellow-400 to-orange-500",
-    error: "bg-gradient-to-r from-red-400 to-pink-500",
-    info: "bg-gradient-to-r from-teal-400 to-cyan-500", // New info variant
-  };
-
-  const shadowColors = {
-    default: "shadow-blue-500/30",
-    success: "shadow-green-500/30",
-    warning: "shadow-yellow-500/30",
-    error: "shadow-red-500/30",
-    info: "shadow-cyan-500/30",
+  const colors = {
+    default: "bg-blue-500",
+    success: "bg-green-500", 
+    warning: "bg-yellow-500",
+    error: "bg-red-500"
   };
 
   return (
-    <div
-      className={`relative w-full ${baseTrackColor} rounded-full h-5 overflow-hidden shadow-inner dark:shadow-gray-900/50 ${className}`}
-      role="progressbar"
-      aria-valuenow={Math.round(displayValue)}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-label="Progress bar"
-    >
-      <motion.div
-        className={`h-full rounded-full transition-all duration-500 ease-out ${barColors[variant]} ${
-          animated ? "animate-shine" : "" // Custom shine animation (see Tailwind config below)
-        } ${shadowColors[variant]} shadow-lg`}
-        initial={{ width: 0 }}
-        animate={{ width: `${displayValue}%` }}
-        transition={{ duration: 0.8, ease: "easeOut", type: "spring", stiffness: 100, damping: 20 }}
-        whileHover={{ scaleX: 1.005 }} // Subtle hover effect
-        style={{ transformOrigin: "left" }}
-      >
-        {showPercentage && (
-          <AnimatePresence>
-            {displayValue > 5 && ( // Only show percentage if there's enough space
-              <motion.div
-                className="absolute inset-y-0 right-2 flex items-center justify-end h-full" // Position percentage inside the bar
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                transition={{ delay: 0.2 }}
-              >
-                <span className="text-xs font-bold text-white text-shadow-sm pointer-events-none pr-1">
-                  {Math.round(displayValue)}%
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
-      </motion.div>
+    <div className={`relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden ${className}`}>
+      <div 
+        className={`h-full transition-all duration-1000 ease-out ${colors[variant]} ${animated ? 'animate-pulse' : ''}`}
+        style={{ width: `${displayValue}%` }}
+      />
+      {showPercentage && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-xs font-bold text-white drop-shadow-md">
+            {Math.round(displayValue)}%
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ResumeRanker = () => {
   const [resumeFiles, setResumeFiles] = useState<ResumeFile[]>([]);
