@@ -513,91 +513,7 @@ const ResumeRanker = () => {
           </motion.div>
         </motion.div>
 
-         {/* Score Clarification */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="relative overflow-hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl border-2 border-gradient-to-r from-blue-300/50 via-purple-300/50 to-pink-300/50 dark:from-blue-600/50 dark:via-purple-600/50 dark:to-pink-600/50 rounded-3xl px-8 py-8 shadow-2xl max-w-5xl mx-auto mb-16"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 animate-pulse"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-white/30 dark:from-gray-900/50 dark:via-transparent dark:to-gray-900/30"></div>
-          
-          <div className="relative">
-            <motion.div 
-              className="flex items-center justify-center gap-3 mb-6"
-              initial={{ y: -10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-4 rounded-2xl shadow-lg">
-                <BarChart3 className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-3xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                How Scoring Works
-              </h3>
-              <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              >
-                <Sparkles className="w-8 h-8 text-yellow-500" />
-              </motion.div>
-            </motion.div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <motion.div 
-                className="bg-gradient-to-br from-emerald-50/80 to-green-100/80 dark:from-emerald-900/20 dark:to-green-900/20 p-6 rounded-2xl border border-green-200/50 dark:border-green-700/50 shadow-lg"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-4 h-4 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">Lower Score = Better Match!</span>
-                </div>
-                <p className="text-emerald-600 dark:text-emerald-400 leading-relaxed">
-                  Your resume closely aligns with job requirements. This means you're a strong candidate for the position.
-                </p>
-              </motion.div>
-              
-              <motion.div 
-                className="bg-gradient-to-br from-red-50/80 to-orange-100/80 dark:from-red-900/20 dark:to-orange-900/20 p-6 rounded-2xl border border-red-200/50 dark:border-red-700/50 shadow-lg"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-orange-500 rounded-full animate-pulse"></div>
-                  <span className="text-lg font-bold text-red-700 dark:text-red-300">Higher Score = Less Relevant</span>
-                </div>
-                <p className="text-red-600 dark:text-red-400 leading-relaxed">
-                  Your resume needs more alignment with the job description. Consider highlighting relevant skills.
-                </p>
-              </motion.div>
-            </div>
-            
-            <motion.div 
-              className="bg-gradient-to-r from-blue-50/80 via-purple-50/80 to-pink-50/80 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50 dark:border-blue-700/50"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <div className="flex items-start gap-4">
-                <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-xl">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
-                    <span>🧠 AI-Powered Analysis</span>
-                  </h4>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Our advanced AI calculates semantic similarity between your resume and the job description. 
-                    Scores might seem small, but focus on <strong>relative ranking</strong> - the lowest score wins! 
-                    Think of it like golf scoring: lower is better. 📊
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
+         
 
         {/* Progress Steps */}
         <motion.div 
@@ -827,6 +743,92 @@ const ResumeRanker = () => {
             </motion.div>
           </div>
         </div>
+
+        {/* Score Clarification */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="relative overflow-hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl border-2 border-gradient-to-r from-blue-300/50 via-purple-300/50 to-pink-300/50 dark:from-blue-600/50 dark:via-purple-600/50 dark:to-pink-600/50 rounded-3xl px-8 py-8 shadow-2xl max-w-5xl mx-auto mb-16"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 animate-pulse"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-white/30 dark:from-gray-900/50 dark:via-transparent dark:to-gray-900/30"></div>
+          
+          <div className="relative">
+            <motion.div 
+              className="flex items-center justify-center gap-3 mb-6"
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-4 rounded-2xl shadow-lg">
+                <BarChart3 className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-3xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                How Scoring Works
+              </h3>
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              >
+                <Sparkles className="w-8 h-8 text-yellow-500" />
+              </motion.div>
+            </motion.div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <motion.div 
+                className="bg-gradient-to-br from-emerald-50/80 to-green-100/80 dark:from-emerald-900/20 dark:to-green-900/20 p-6 rounded-2xl border border-green-200/50 dark:border-green-700/50 shadow-lg"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-4 h-4 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">Lower Score = Better Match!</span>
+                </div>
+                <p className="text-emerald-600 dark:text-emerald-400 leading-relaxed">
+                  Your resume closely aligns with job requirements. This means you're a strong candidate for the position.
+                </p>
+              </motion.div>
+              
+              <motion.div 
+                className="bg-gradient-to-br from-red-50/80 to-orange-100/80 dark:from-red-900/20 dark:to-orange-900/20 p-6 rounded-2xl border border-red-200/50 dark:border-red-700/50 shadow-lg"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-orange-500 rounded-full animate-pulse"></div>
+                  <span className="text-lg font-bold text-red-700 dark:text-red-300">Higher Score = Less Relevant</span>
+                </div>
+                <p className="text-red-600 dark:text-red-400 leading-relaxed">
+                  Your resume needs more alignment with the job description. Consider highlighting relevant skills.
+                </p>
+              </motion.div>
+            </div>
+            
+            <motion.div 
+              className="bg-gradient-to-r from-blue-50/80 via-purple-50/80 to-pink-50/80 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50 dark:border-blue-700/50"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <div className="flex items-start gap-4">
+                <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-xl">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
+                    <span>🧠 AI-Powered Analysis</span>
+                  </h4>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    Our advanced AI calculates semantic similarity between your resume and the job description. 
+                    Scores might seem small, but focus on <strong>relative ranking</strong> - the lowest score wins! 
+                    Think of it like golf scoring: lower is better. 📊
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
 
         {/* Rank Button */}
         <motion.div
