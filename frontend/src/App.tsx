@@ -6,7 +6,7 @@ import {
   Sun, Moon, Monitor, FileText, Upload, Loader2, Rocket, ArrowRight,
   CheckCircle, XCircle, Trash2, Brain, Download, Trophy, Sparkles, Crown,
   Eye, EyeOff, MessageSquareText, Target, BarChart3, Zap, Star, Award, Heart,
-  Users, Clock, Info, ShieldCheck, Accessibility, HelpCircle, GitBranch, User
+  Users, Clock, Info, ShieldCheck, Accessibility, HelpCircle, GitBranch, User, Mail
 } from "lucide-react";
 
 const queryClient = new QueryClient();
