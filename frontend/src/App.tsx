@@ -148,93 +148,103 @@ const ResumeRanker = () => {
   };
 
   {/* Progress Steps */}
-            <div className="relative">
-              <div className="absolute top-8 left-8 right-8 h-1 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-full">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full shadow-lg"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${overallProgress}%` }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                />
-              </div>
+           <div className="relative">
+  <div
+    className="absolute top-8 left-8 right-8 h-1 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-full"
+  >
+    <motion.div
+      className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full shadow-lg"
+      initial={{ width: 0 }}
+      animate={{ width: `${overallProgress}%` }}
+      transition={{ duration: 1.5, ease: "easeOut" }}
+    />
+  </div>
 
-              <div className="relative flex justify-between items-start">
-                {progressSteps.map((step, index) => (
-                  <motion.div
-                    key={step.id}
-                    className="flex flex-col items-center flex-1 group"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1, duration: 0.4 }}
-                  </div>
-                    <motion.div
-                      className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all duration-500 ${
-                        step.completed
-                          ? 'bg-gradient-to-br from-green-400 to-emerald-500 border-green-300 shadow-lg shadow-green-500/25'
-                          : index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
-                          ? 'bg-gradient-to-br from-blue-400 to-purple-500 border-blue-300 shadow-lg shadow-blue-500/25 animate-pulse'
-                          : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
-                      }`}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      whileTap={{ scale: 0.95 }}
-                    </div>
-                      <AnimatePresence mode="wait">
-                        {step.completed ? (
-                          <motion.div
-                            key="completed"
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            exit={{ scale: 0, rotate: 180 }}
-                            transition={{ type: "spring", stiffness: 200 }}
-                          </div>
-                            <CheckCircle className="w-8 h-8 text-white" />
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            key="icon"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0 }}
-                            className={`${
-                              index === (currentStep >= 0 ? currentStep : progressSteps.length - 1) ? 'text-white' : 'text-gray-500 dark:text-gray-400'
-                            }`}
-                          </div>
-                            <step.icon className="w-6 h-6" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-
-                    <motion.div
-                      className="mt-4 text-center max-w-[120px]"
-                      animate={{
-                        y: index === (currentStep >= 0 ? currentStep : progressSteps.length - 1) ? [0, -2, 0] : 0
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: index === (currentStep >= 0 ? currentStep : progressSteps.length - 1) ? Infinity : 0,
-                        ease: "easeInOut"
-                      }}
-                    </div>
-                      <h4 className={`text-sm font-semibold transition-colors ${
-                        step.completed 
-                          ? 'text-green-600 dark:text-green-400' 
-                          : index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
-                          ? 'text-blue-600 dark:text-blue-400' 
-                          : 'text-gray-600 dark:text-gray-400'
-                      }`}</h4>
-                        {step.label}
-                      </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 leading-tight">
-                        {step.description}
-                      </p>
-                    </motion.div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
+  <div className="relative flex justify-between items-start">
+    {progressSteps.map((step, index) => (
+      <motion.div
+        key={step.id}
+        className="flex flex-col items-center flex-1 group"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: index * 0.1, duration: 0.4 }}
+      >
+        <motion.div
+          className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all duration-500 ${
+            step.completed
+              ? "bg-gradient-to-br from-green-400 to-emerald-500 border-green-300 shadow-lg shadow-green-500/25"
+              : index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
+              ? "bg-gradient-to-br from-blue-400 to-purple-500 border-blue-300 shadow-lg shadow-blue-500/25 animate-pulse"
+              : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+          }`}
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <AnimatePresence mode="wait">
+            {step.completed ? (
+              <motion.div
+                key="completed"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 180 }}
+                transition={{ type: "spring", stiffness: 200 }}
+              >
+                <CheckCircle className="w-8 h-8 text-white" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="icon"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className={`${
+                  index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
+                    ? "text-white"
+                    : "text-gray-500 dark:text-gray-400"
+                }`}
+              >
+                <step.icon className="w-6 h-6" />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
+
+        <motion.div
+          className="mt-4 text-center max-w-[120px]"
+          animate={{
+            y:
+              index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
+                ? [0, -2, 0]
+                : 0,
+          }}
+          transition={{
+            duration: 2,
+            repeat:
+              index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
+                ? Infinity
+                : 0,
+            ease: "easeInOut",
+          }}
+        >
+          <h4
+            className={`text-sm font-semibold transition-colors ${
+              step.completed
+                ? "text-green-600 dark:text-green-400"
+                : index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
+                ? "text-blue-600 dark:text-blue-400"
+                : "text-gray-600 dark:text-gray-400"
+            }`}
+          >
+            {step.label}
+          </h4>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 leading-tight">
+            {step.description}
+          </p>
+        </motion.div>
+      </motion.div>
+    ))}
+  </div>
+</div>
 
 
   // File handling functions
