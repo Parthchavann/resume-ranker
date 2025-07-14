@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Progress } from "./components/ui/progress";
+import { Progress } from "./components/Progress";
 import {
   Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy, 
   Sparkles, Crown, CheckCircle, Target, BarChart3, Brain, ArrowRight, Rocket, 
