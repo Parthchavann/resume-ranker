@@ -1,18 +1,16 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import * as ProgressPrimitive from "@radix-ui/react-progress";
-import { cn } from "@/lib/utils";
+import { Progress } from "./components/ui/progress"; // Ensure this path is correct
 import {
-  Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy, 
-  Sparkles, Crown, CheckCircle, Target, BarChart3, Brain, ArrowRight, Rocket, 
+  Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy,
+  Sparkles, Crown, CheckCircle, Target, BarChart3, Brain, ArrowRight, Rocket,
   Sun, Moon, Monitor, ArrowUp, Zap, Star, Award, Eye, EyeOff, Heart, Users, Clock
 } from 'lucide-react';
 
 const queryClient = new QueryClient();
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = 'http://localhost:8000'; // Make sure your backend is running on this URL
 
 interface ResumeFile {
   id: string;
@@ -31,99 +29,6 @@ interface RankedResume {
 }
 
 type Theme = 'light' | 'dark' | 'system';
-
-// Inline Progress Component
-interface ProgressProps extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
-  value?: number
-  showPercentage?: boolean
-  variant?: "default" | "success" | "warning" | "error"
-  size?: "sm" | "md" | "lg"
-  animated?: boolean
-  gradient?: boolean
-}
-
-const Progress = React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
-  ProgressProps
->(({ 
-  className, 
-  value, 
-  showPercentage = false, 
-  variant = "default", 
-  size = "md", 
-  animated = false,
-  gradient = false,
-  ...props 
-}, ref) => {
-  const [displayValue, setDisplayValue] = React.useState(0)
-  
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setDisplayValue(value || 0)
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [value])
-
-  const sizeStyles = {
-    sm: "h-2",
-    md: "h-4", 
-    lg: "h-6"
-  }
-
-  const variantStyles = {
-    default: "bg-primary",
-    success: "bg-green-500",
-    warning: "bg-yellow-500", 
-    error: "bg-red-500"
-  }
-
-  const gradientStyles = {
-    default: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500",
-    success: "bg-gradient-to-r from-green-400 to-emerald-500",
-    warning: "bg-gradient-to-r from-yellow-400 to-orange-500",
-    error: "bg-gradient-to-r from-red-400 to-pink-500"
-  }
-
-  return (
-    <div className="relative">
-      <ProgressPrimitive.Root
-        ref={ref}
-        className={cn(
-          "relative w-full overflow-hidden rounded-full bg-secondary shadow-inner",
-          sizeStyles[size],
-          className
-        )}
-        {...props}
-      >
-        <ProgressPrimitive.Indicator
-          className={cn(
-            "h-full w-full flex-1 transition-all duration-1000 ease-out relative overflow-hidden",
-            gradient ? gradientStyles[variant] : variantStyles[variant],
-            animated && "animate-pulse"
-          )}
-          style={{ transform: `translateX(-${100 - displayValue}%)` }}
-        >
-          {gradient && (
-            <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/40 to-white/20 animate-shimmer" />
-          )}
-          {animated && (
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-slide" />
-          )}
-        </ProgressPrimitive.Indicator>
-      </ProgressPrimitive.Root>
-      
-      {showPercentage && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <span className="text-xs font-bold text-white drop-shadow-md">
-            {Math.round(displayValue)}%
-          </span>
-        </div>
-      )}
-    </div>
-  )
-})
-
-Progress.displayName = ProgressPrimitive.Root.displayName
 
 const ResumeRanker = () => {
   const [resumeFiles, setResumeFiles] = useState<ResumeFile[]>([]);
@@ -150,7 +55,7 @@ const ResumeRanker = () => {
 
   const applyTheme = (newTheme: Theme) => {
     let shouldBeDark = false;
-    
+
     if (newTheme === 'dark') {
       shouldBeDark = true;
     } else if (newTheme === 'light') {
@@ -158,7 +63,7 @@ const ResumeRanker = () => {
     } else {
       shouldBeDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
-    
+
     setIsDark(shouldBeDark);
     document.documentElement.classList.toggle('dark', shouldBeDark);
     localStorage.setItem('theme', newTheme);
@@ -361,6 +266,7 @@ const ResumeRanker = () => {
 
     const formData = new FormData();
     formData.append('jd_file', jobDescriptionFile);
+    resumeFiles.forEach(resume => formData.append('resume_ids', resume.id)); // Send resume IDs
 
     try {
       const response = await fetch(`${BACKEND_URL}/rank_resumes/`, {
@@ -377,11 +283,11 @@ const ResumeRanker = () => {
       const rankedData = data.ranked_resumes.map((r: any) => ({ ...r, showFeedback: false }));
       setRankedResumes(rankedData);
       setJobDescriptionText(data.job_description_text);
-      
+
       if (rankedData.length > 0 && rankedData[0].score < 0.2) {
         triggerConfetti();
       }
-      
+
       toast.success('Resumes ranked successfully!');
     } catch (error: any) {
       toast.error(`Error ranking resumes: ${error.message}`);
@@ -496,7 +402,7 @@ const ResumeRanker = () => {
           >
             <ThemeIcon className="w-5 h-5" />
           </motion.div>
-          
+
           <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
             {['light', 'dark', 'system'].map((t, index) => (
               <motion.div
@@ -563,7 +469,7 @@ const ResumeRanker = () => {
 
       <div className="relative z-10 p-4 sm:p-8 font-sans text-gray-800 dark:text-gray-200">
         <Toaster position="top-center" />
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -50 }}
@@ -591,7 +497,7 @@ const ResumeRanker = () => {
               <Sparkles className="w-4 h-4" />
             </motion.div>
           </motion.div>
-          
+
           <motion.h1
             className="text-6xl sm:text-8xl font-black mb-6 tracking-tight"
             initial={{ scale: 0.8, opacity: 0 }}
@@ -610,7 +516,7 @@ const ResumeRanker = () => {
               Pro
             </motion.span>
           </motion.h1>
-          
+
           <motion.p
             className="text-xl sm:text-2xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium"
             initial={{ y: 20, opacity: 0 }}
@@ -622,7 +528,7 @@ const ResumeRanker = () => {
               advanced AI semantic analysis
             </span>
           </motion.p>
-          
+
           <motion.div
             className="flex justify-center gap-8 mt-8"
             initial={{ opacity: 0, y: 20 }}
@@ -651,7 +557,7 @@ const ResumeRanker = () => {
         </motion.div>
 
         {/* Progress Section */}
-        <motion.div 
+        <motion.div
           className="max-w-6xl mx-auto mb-16"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -675,13 +581,13 @@ const ResumeRanker = () => {
                 </h3>
                 <Trophy className="w-6 h-6 text-yellow-500" />
               </div>
-              
+
               <div className="max-w-md mx-auto">
-                <Progress 
-                  value={overallProgress} 
+                <Progress
+                  value={overallProgress}
                   className="h-3 shadow-lg"
                 />
-                <motion.p 
+                <motion.p
                   className="text-sm text-gray-600 dark:text-gray-400 mt-2"
                   animate={{ opacity: [0.7, 1, 0.7] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -761,10 +667,10 @@ const ResumeRanker = () => {
                       }}
                     >
                       <h4 className={`text-sm font-semibold transition-colors ${
-                        step.completed 
-                          ? 'text-green-600 dark:text-green-400' 
+                        step.completed
+                          ? 'text-green-600 dark:text-green-400'
                           : index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
-                          ? 'text-blue-600 dark:text-blue-400' 
+                          ? 'text-blue-600 dark:text-blue-400'
                           : 'text-gray-600 dark:text-gray-400'
                       }`}>
                         {step.label}
@@ -799,7 +705,7 @@ const ResumeRanker = () => {
                   <p className="text-blue-600/80 dark:text-blue-400/80 text-sm">Upload the target job posting</p>
                 </div>
               </div>
-              
+
               <label
                 htmlFor="jd-upload"
                 className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-2xl cursor-pointer bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50 hover:from-blue-100/50 hover:to-indigo-100/50 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 transition-all duration-300 group-hover:border-blue-400"
@@ -825,7 +731,7 @@ const ResumeRanker = () => {
                   ref={jdFileInputRef}
                 />
               </label>
-              
+
               <AnimatePresence>
                 {jobDescriptionFile && (
                   <motion.div
@@ -873,22 +779,22 @@ const ResumeRanker = () => {
                   <p className="text-purple-600/80 dark:text-purple-400/80 text-sm">Upload multiple resume files</p>
                 </div>
               </div>
-              
+
               <label
                 htmlFor="resume-upload"
                 className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-purple-300 dark:border-purple-600 rounded-2xl cursor-pointer bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/50 dark:to-pink-950/50 hover:from-purple-100/50 hover:to-pink-100/50 dark:hover:from-purple-900/50 dark:hover:to-pink-900/50 transition-all duration-300 group-hover:border-purple-400"
               >
                 <div className="flex flex-col items-center justify-center py-6">
                   <motion.div
-                    whileHover={{ scale: 1.1, rotate: -5 }}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     <Upload className="w-10 h-10 text-purple-500 dark:text-purple-400 mb-3" />
                   </motion.div>
                   <p className="mb-2 text-lg font-semibold text-purple-700 dark:text-purple-300">
-                    Drop resume files here
+                    Drop resumes here (or click)
                   </p>
-                  <p className="text-sm text-purple-500 dark:text-purple-400">Multiple PDFs supported</p>
+                  <p className="text-sm text-purple-500 dark:text-purple-400">PDF format • Multiple files</p>
                 </div>
                 <input
                   id="resume-upload"
@@ -901,35 +807,25 @@ const ResumeRanker = () => {
                 />
               </label>
 
-              {isUploadingResumes && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mt-6 flex items-center justify-center text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-950/50 rounded-2xl p-4"
-                >
-                  <Loader2 className="animate-spin mr-3 w-5 h-5" />
-                  <span className="font-medium">Processing resumes...</span>
-                </motion.div>
-              )}
-
-              {resumeFiles.length > 0 && (
-                <div className="mt-6 max-h-64 overflow-y-auto pr-2 space-y-3">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Award className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                    <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">{resumeFiles.length} Resume{resumeFiles.length > 1 ? 's' : ''} Ready</span>
-                  </div>
-                  <AnimatePresence mode="popLayout">
-                    {resumeFiles.map((resume, index) => (
+              <AnimatePresence>
+                {resumeFiles.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-6 space-y-3 max-h-64 overflow-y-auto pr-2"
+                  >
+                    {resumeFiles.map((resume) => (
                       <motion.div
                         key={resume.id}
-                        initial={{ opacity: 0, x: -20, scale: 0.9 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: 20, scale: 0.9 }}
-                        layout
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-100/60 to-pink-100/60 dark:from-purple-900/60 dark:to-pink-900/60 rounded-xl border border-purple-200/50 dark:border-purple-700/50 shadow-sm hover:shadow-md transition-all duration-200"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                        className="p-3 bg-gradient-to-r from-purple-100/80 to-pink-100/80 dark:from-purple-900/80 dark:to-pink-900/80 rounded-2xl flex items-center justify-between border border-purple-200/50 dark:border-purple-700/50 shadow-md"
                       >
-                        <div className="flex items-center gap-3 flex-1">
+                        <div className="flex items-center gap-3">
                           <div className="bg-purple-500 p-2 rounded-lg">
                             <FileText className="w-4 h-4 text-white" />
                           </div>
@@ -942,444 +838,231 @@ const ResumeRanker = () => {
                           className="ml-2 text-purple-600 dark:text-purple-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50"
                           title="Remove Resume"
                         >
-                          <Trash2 className="w-5 h-5" />
+                          <XCircle className="w-5 h-5" />
                         </motion.button>
                       </motion.div>
                     ))}
-                  </AnimatePresence>
-                </div>
-              )}
+                    {isUploadingResumes && (
+                      <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center border border-gray-200 dark:border-gray-700 shadow-md animate-pulse">
+                        <Loader2 className="w-5 h-5 mr-2 text-gray-500 animate-spin" />
+                        <span className="text-gray-600 dark:text-gray-400">Uploading resumes...</span>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         </div>
 
-        {/* Score Clarification */}
+        {/* Rank Resumes Button */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="relative overflow-hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl border-2 border-gradient-to-r from-blue-300/50 via-purple-300/50 to-pink-300/50 dark:from-blue-600/50 dark:via-purple-600/50 dark:to-pink-600/50 rounded-3xl px-8 py-8 shadow-2xl max-w-5xl mx-auto mb-16"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 animate-pulse"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-white/30 dark:from-gray-900/50 dark:via-transparent dark:to-gray-900/30"></div>
-          
-          <div className="relative">
-            <motion.div 
-              className="flex items-center justify-center gap-3 mb-6"
-              initial={{ y: -10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-4 rounded-2xl shadow-lg">
-                <BarChart3 className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-3xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                How Scoring Works
-              </h3>
-              <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              >
-                <Sparkles className="w-8 h-8 text-yellow-500" />
-              </motion.div>
-            </motion.div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <motion.div 
-                className="bg-gradient-to-br from-emerald-50/80 to-green-100/80 dark:from-emerald-900/20 dark:to-green-900/20 p-6 rounded-2xl border border-green-200/50 dark:border-green-700/50 shadow-lg"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-4 h-4 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">Lower Score = Better Match!</span>
-                </div>
-                <p className="text-emerald-600 dark:text-emerald-400 leading-relaxed">
-                  Your resume closely aligns with job requirements. This means you're a strong candidate for the position.
-                </p>
-              </motion.div>
-              
-              <motion.div 
-                className="bg-gradient-to-br from-red-50/80 to-orange-100/80 dark:from-red-900/20 dark:to-orange-900/20 p-6 rounded-2xl border border-red-200/50 dark:border-red-700/50 shadow-lg"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-orange-500 rounded-full animate-pulse"></div>
-                  <span className="text-lg font-bold text-red-700 dark:text-red-300">Higher Score = Less Relevant</span>
-                </div>
-                <p className="text-red-600 dark:text-red-400 leading-relaxed">
-                  Your resume needs more alignment with the job description. Consider highlighting relevant skills.
-                </p>
-              </motion.div>
-            </div>
-            
-            <motion.div 
-              className="bg-gradient-to-r from-blue-50/80 via-purple-50/80 to-pink-50/80 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50 dark:border-blue-700/50"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <div className="flex items-start gap-4">
-                <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-xl">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
-                    <span>🧠 AI-Powered Analysis</span>
-                  </h4>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Our advanced AI calculates semantic similarity between your resume and the job description. 
-                    Scores might seem small, but focus on <strong>relative ranking</strong> - the lowest score wins! 
-                    Think of it like golf scoring: lower is better. 📊
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Rank Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex justify-center mb-16"
+          className="text-center mb-16"
         >
-          <motion.button
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={handleRankResumes}
             disabled={!jobDescriptionFile || resumeFiles.length === 0 || isRanking || isUploadingResumes}
-            className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white py-6 px-12 rounded-3xl text-xl font-bold shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-w-[280px]"
+            className={`px-12 py-5 rounded-full text-xl font-bold transition-all duration-300 transform flex items-center justify-center gap-3 mx-auto
+              ${
+                (!jobDescriptionFile || resumeFiles.length === 0 || isRanking || isUploadingResumes)
+                  ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed shadow-inner'
+                  : 'bg-gradient-to-r from-teal-500 to-emerald-600 text-white shadow-2xl hover:scale-105 hover:from-teal-600 hover:to-emerald-700 active:scale-95 active:shadow-lg'
+              }`}
+            whileHover={{ scale: (!jobDescriptionFile || resumeFiles.length === 0 || isRanking || isUploadingResumes) ? 1 : 1.05 }}
+            whileTap={{ scale: (!jobDescriptionFile || resumeFiles.length === 0 || isRanking || isUploadingResumes) ? 1 : 0.95 }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative flex items-center gap-3">
-              {isRanking ? (
-                <>
-                  <Loader2 className="animate-spin w-6 h-6" />
-                  <span>Analyzing Resumes...</span>
-                </>
-              ) : (
-                <>
-                  <Rocket className="w-6 h-6" />
-                  <span>Start AI Analysis</span>
-                </>
-              )}
-            </div>
-          </motion.button>
+            {isRanking ? (
+              <>
+                <Loader2 className="w-6 h-6 animate-spin" />
+                Analyzing Resumes...
+              </>
+            ) : (
+              <>
+                <BarChart3 className="w-6 h-6" />
+                Rank Resumes Now!
+                <ArrowRight className="w-6 h-6" />
+              </>
+            )}
+          </button>
+          <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm">
+            {isRanking ? "This might take a moment based on the number of resumes." : "Click to get instant rankings based on your job description."}
+          </p>
         </motion.div>
 
-        {/* Results Section */}
-        <AnimatePresence mode="wait">
-          {rankedResumes.length > 0 ? (
+        {/* Ranked Resumes Display */}
+        <AnimatePresence>
+          {rankedResumes.length > 0 && (
             <motion.div
-              key="results"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -50 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
               className="max-w-6xl mx-auto"
             >
-              <div className="text-center mb-12">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-full font-semibold mb-4 shadow-lg"
-                >
-                  <Trophy className="w-5 h-5" />
-                  Analysis Complete
-                </motion.div>
-                <h2 className="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-4">Ranked Results</h2>
-                <p className="text-gray-600 dark:text-gray-400 text-lg">Resumes ordered by relevance to your job description</p>
-              </div>
-              
-              <div className="space-y-8">
+              <h2 className="text-4xl font-extrabold text-center mb-10 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-lg">
+                <Trophy className="inline-block w-9 h-9 mr-3 mb-1 text-yellow-500" />
+                Top Candidates Ranked
+                <Trophy className="inline-block w-9 h-9 ml-3 mb-1 text-yellow-500" />
+              </h2>
+
+              <div className="space-y-6">
                 {rankedResumes.map((resume, index) => (
                   <motion.div
                     key={resume.resume_id}
-                    initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className={`relative p-8 rounded-3xl shadow-2xl border-2 transition-all duration-300 hover:scale-[1.01] ${
-                      index === 0
-                        ? 'bg-gradient-to-br from-yellow-50/80 via-amber-50/80 to-orange-50/80 dark:from-yellow-900/20 dark:via-amber-900/20 dark:to-orange-900/20 border-amber-300/50 dark:border-amber-600/50 ring-4 ring-amber-400/30'
-                        : index === 1
-                        ? 'bg-gradient-to-br from-slate-50/80 via-gray-50/80 to-slate-100/80 dark:from-slate-800/80 dark:via-gray-800/80 dark:to-slate-900/80 border-slate-300/50 dark:border-slate-600/50 ring-2 ring-slate-400/20'
-                        : index === 2
-                        ? 'bg-gradient-to-br from-orange-50/80 via-amber-50/80 to-yellow-50/80 dark:from-orange-900/20 dark:via-amber-900/20 dark:to-yellow-900/20 border-orange-300/50 dark:border-orange-600/50 ring-2 ring-orange-400/20'
-                        : 'bg-white/80 dark:bg-gray-900/80 border-gray-200/50 dark:border-gray-700/50'
-                    }`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
                   >
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ delay: 0.5 + index * 0.1, type: "spring", stiffness: 200 }}
-                      className={`absolute -top-4 -left-4 w-12 h-12 rounded-full flex items-center justify-center font-bold text-white shadow-lg ${
-                        index === 0
-                          ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
-                          : index === 1
-                          ? 'bg-gradient-to-br from-slate-400 to-gray-500'
-                          : index === 2
-                          ? 'bg-gradient-to-br from-orange-400 to-amber-500'
-                          : 'bg-gradient-to-br from-blue-400 to-indigo-500'
-                      }`}
-                    >
-                      {index + 1}
-                    </motion.div>
-
-                    {index === 0 && (
+                    <div className="flex items-center gap-4 w-full md:w-auto">
                       <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.8 }}
-                        className="absolute top-4 right-4 flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-4 py-2 rounded-full font-bold shadow-lg"
+                        className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-lg
+                          bg-gradient-to-br ${getScoreColor(resume.score, index)}`}
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 200, delay: index * 0.15 }}
                       >
-                        <Crown className="w-5 h-5" />
-                        <span>Best Match</span>
+                        {index + 1}
                       </motion.div>
-                    )}
-
-                    <div className="flex flex-col lg:flex-row justify-between items-start gap-6 mb-6">
                       <div className="flex-1">
-                        <h3 className="text-2xl font-bold mb-3 text-gray-800 dark:text-gray-200 flex items-center gap-3">
-                          <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
                           {resume.filename}
+                          {index === 0 && <Award className="w-5 h-5 ml-2 text-yellow-500" />}
                         </h3>
-                        <div className="bg-white/60 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-200/50 dark:border-gray-700/50">
-                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                            <span className="font-semibold text-gray-800 dark:text-gray-200">Key Match:</span> {resume.snippet || "No preview available."}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="min-w-[200px]">
-                        <div className="w-full">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Match Score</span>
-                            <span className={`text-sm font-bold ${
-                              index === 0 ? 'text-green-600 dark:text-green-400' : 
-                              resume.score < 0.3 ? 'text-green-600 dark:text-green-400' : 
-                              resume.score < 0.6 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
-                            }`}>
-                              {Math.max(0, Math.min(100, (1 - resume.score) * 100)).toFixed(0)}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden shadow-inner">
-                            <motion.div
-                              className={`h-full bg-gradient-to-r ${getScoreColor(resume.score, index)} rounded-full shadow-lg relative overflow-hidden`}
-                              initial={{ width: 0 }}
-                              animate={{ width: `${Math.max(0, Math.min(100, (1 - resume.score) * 100))}%` }}
-                              transition={{ duration: 1.5, delay: 0.5, ease: "easeOut" }}
-                            >
-                              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent animate-pulse"></div>
-                              <motion.div
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                                animate={{ x: ['-100%', '100%'] }}
-                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                              />
-                            </motion.div>
-                          </div>
-                        </div>
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          className={`mt-4 px-6 py-3 rounded-2xl shadow-lg font-bold text-white text-center ${
-                            index === 0
-                              ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
-                              : 'bg-gradient-to-r from-blue-500 to-indigo-600'
-                          }`}
-                        >
-                          <div className="text-sm opacity-90">Raw Score</div>
-                          <div className="text-xl">{Number(resume.score).toFixed(3)}</div>
-                        </motion.div>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">
+                          Score: <span className="font-semibold text-lg">{ (resume.score * 100).toFixed(2) }%</span>
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-4">
+                    <div className="w-full md:flex-1 md:ml-8">
+                      <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Key Match Snippet:</h4>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed bg-gray-50 dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
+                        {resume.snippet || "No specific snippet available."}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
                       <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
                         onClick={() => handleGetLLMFeedback(resume)}
-                        disabled={feedbackLoadingResumeId === resume.resume_id}
-                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl shadow-lg hover:shadow-purple-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                        disabled={feedbackLoadingResumeId === resume.resume_id || !jobDescriptionText}
+                        className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300
+                          ${feedbackLoadingResumeId === resume.resume_id
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 shadow-md hover:shadow-lg'
+                          }`}
+                        whileHover={{ scale: feedbackLoadingResumeId === resume.resume_id ? 1 : 1.05 }}
+                        whileTap={{ scale: feedbackLoadingResumeId === resume.resume_id ? 1 : 0.95 }}
                       >
                         {feedbackLoadingResumeId === resume.resume_id ? (
-                          <Loader2 className="animate-spin w-5 h-5" />
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Generating...
+                          </>
                         ) : (
-                          <MessageSquareText className="w-5 h-5" />
+                          <>
+                            <MessageSquareText className="w-4 h-4" />
+                            Get AI Feedback
+                          </>
                         )}
-                        {feedbackLoadingResumeId === resume.resume_id ? 'Generating...' : 'Get AI Feedback'}
                       </motion.button>
-
                       {resume.feedback && (
-                        <>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => toggleFeedbackVisibility(resume.resume_id)}
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-slate-600 to-gray-700 text-white rounded-xl shadow-lg hover:shadow-slate-500/25 transition-all duration-200 font-semibold"
-                          >
-                            {resume.showFeedback ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                            {resume.showFeedback ? 'Hide' : 'Show'} Feedback
-                          </motion.button>
-
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleDownloadFeedback(resume.feedback!, resume.filename)}
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl shadow-lg hover:shadow-teal-500/25 transition-all duration-200 font-semibold"
-                          >
-                            <Download className="w-5 h-5" />
-                            Download
-                          </motion.button>
-                        </>
+                        <motion.button
+                          onClick={() => toggleFeedbackVisibility(resume.resume_id)}
+                          className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-400 to-pink-500 text-white hover:from-orange-500 hover:to-pink-600 shadow-md hover:shadow-lg transition-all duration-300"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {resume.showFeedback ? (
+                            <>
+                              <EyeOff className="w-4 h-4" />
+                              Hide Feedback
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="w-4 h-4" />
+                              View Feedback
+                            </>
+                          )}
+                        </motion.button>
                       )}
                     </div>
-
-                    <AnimatePresence>
-                      {resume.showFeedback && resume.feedback && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0, y: -20 }}
-                          animate={{ opacity: 1, height: 'auto', y: 0 }}
-                          exit={{ opacity: 0, height: 0, y: -20 }}
-                          transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="mt-8 p-6 bg-gradient-to-br from-white/80 to-gray-50/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-inner"
-                        >
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg">
-                              <Sparkles className="w-5 h-5 text-white" />
-                            </div>
-                            <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200">AI-Generated Feedback</h4>
-                          </div>
-                          <div className="prose prose-gray dark:prose-invert max-w-none">
-                            <pre className="whitespace-pre-wrap text-gray-700 dark:text-gray-300 leading-relaxed font-sans text-sm lg:text-base">
-                              {resume.feedback}
-                            </pre>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </motion.div>
                 ))}
               </div>
             </motion.div>
-          ) : (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="max-w-2xl mx-auto text-center bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl shadow-xl p-12 border border-gray-200/50 dark:border-gray-700/50"
-            >
-              <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Zap className="w-10 h-10 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Ready to Analyze</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
-                Upload your job description and resume files, then click "Start AI Analysis" to see intelligent rankings and insights.
-              </p>
-            </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Footer */}
-        <footer className="mt-32 py-16 bg-gradient-to-t from-slate-900/20 to-transparent dark:from-slate-950/40 dark:to-transparent backdrop-blur-xl">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="md:col-span-2">
+        {/* Feedback Modals/Display Area */}
+        <AnimatePresence>
+          {rankedResumes.map((resume) => (
+            resume.showFeedback && resume.feedback && (
+              <motion.div
+                key={`feedback-${resume.resume_id}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50"
+              >
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="flex items-center gap-3 mb-6"
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto relative border border-gray-200 dark:border-gray-700"
                 >
-                  <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-2xl shadow-lg">
-                    <Brain className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                    Resume Ranker Pro
+                  <button
+                    onClick={() => toggleFeedbackVisibility(resume.resume_id)}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                  >
+                    <XCircle className="w-6 h-6" />
+                  </button>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                    <MessageSquareText className="w-6 h-6 mr-3 text-blue-600 dark:text-blue-400" />
+                    AI Feedback for {resume.filename}
                   </h3>
+                  <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed overflow-auto">
+                    {/* Render feedback with line breaks */}
+                    {resume.feedback.split('\n').map((line, i) => (
+                      <p key={i} className="mb-2">{line}</p>
+                    ))}
+                  </div>
+                  <div className="flex justify-end mt-6">
+                    <motion.button
+                      onClick={() => handleDownloadFeedback(resume.feedback, resume.filename)}
+                      className="flex items-center gap-2 px-6 py-3 rounded-full text-white font-semibold bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 shadow-md hover:shadow-lg transition-all duration-300"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Download className="w-5 h-5" />
+                      Download Feedback
+                    </motion.button>
+                  </div>
                 </motion.div>
-                <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-6">
-                  Powered by cutting-edge AI technology to help you find the perfect candidate match. 
-                  Our semantic analysis goes beyond keyword matching to understand true relevance.
-                </p>
-                <div className="flex items-center gap-4">
-                  <motion.div 
-                    className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <Heart className="w-5 h-5" />
-                    <span className="font-medium">Made with AI</span>
-                  </motion.div>
-                  <motion.div 
-                    className="flex items-center gap-2 text-blue-600 dark:text-blue-400"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <Users className="w-5 h-5" />
-                    <span className="font-medium">Trusted by HR</span>
-                  </motion.div>
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Features</h4>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>AI-Powered Ranking</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Semantic Analysis</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Instant Feedback</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Batch Processing</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div>
-                <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Technology</h4>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                  <li className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-yellow-500" />
-                    <span>Ollama Integration</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-yellow-500" />
-                    <span>Fast Processing</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-yellow-500" />
-                    <span>Secure & Private</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-blue-500" />
-                    <span>Real-time Results</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="border-t border-gray-200/50 dark:border-gray-700/50 mt-12 pt-8 text-center"
-            >
-              <p className="text-gray-500 dark:text-gray-400">
-                © 2024 Resume Ranker Pro. Revolutionizing recruitment with AI-powered insights.
-              </p>
-            </motion.div>
-          </div>
-        </footer>
+              </motion.div>
+            )
+          ))}
+        </AnimatePresence>
+
+        {/* Footer */}
+        <motion.footer
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0, duration: 0.5 }}
+          className="text-center mt-20 pb-8 text-gray-600 dark:text-gray-400 text-sm"
+        >
+          <p>&copy; {new Date().getFullYear()} Resume Ranker Pro. All rights reserved.</p>
+          <p className="mt-2 flex items-center justify-center gap-1">
+            Made with <Heart className="w-4 h-4 text-red-500" /> by
+            <a href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+              Parth Chahvan
+            </a>
+          </p>
+        </motion.footer>
       </div>
     </div>
   );
