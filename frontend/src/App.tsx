@@ -3,7 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Progress } from "./components/ui/progress";
+import * as ProgressPrimitive from "@radix-ui/react-progress";
+import { cn } from "@/lib/utils";
 import {
   Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy, 
   Sparkles, Crown, CheckCircle, Target, BarChart3, Brain, ArrowRight, Rocket, 
@@ -30,6 +31,99 @@ interface RankedResume {
 }
 
 type Theme = 'light' | 'dark' | 'system';
+
+// Inline Progress Component
+interface ProgressProps extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
+  value?: number
+  showPercentage?: boolean
+  variant?: "default" | "success" | "warning" | "error"
+  size?: "sm" | "md" | "lg"
+  animated?: boolean
+  gradient?: boolean
+}
+
+const Progress = React.forwardRef<
+  React.ElementRef<typeof ProgressPrimitive.Root>,
+  ProgressProps
+>(({ 
+  className, 
+  value, 
+  showPercentage = false, 
+  variant = "default", 
+  size = "md", 
+  animated = false,
+  gradient = false,
+  ...props 
+}, ref) => {
+  const [displayValue, setDisplayValue] = React.useState(0)
+  
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDisplayValue(value || 0)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [value])
+
+  const sizeStyles = {
+    sm: "h-2",
+    md: "h-4", 
+    lg: "h-6"
+  }
+
+  const variantStyles = {
+    default: "bg-primary",
+    success: "bg-green-500",
+    warning: "bg-yellow-500", 
+    error: "bg-red-500"
+  }
+
+  const gradientStyles = {
+    default: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500",
+    success: "bg-gradient-to-r from-green-400 to-emerald-500",
+    warning: "bg-gradient-to-r from-yellow-400 to-orange-500",
+    error: "bg-gradient-to-r from-red-400 to-pink-500"
+  }
+
+  return (
+    <div className="relative">
+      <ProgressPrimitive.Root
+        ref={ref}
+        className={cn(
+          "relative w-full overflow-hidden rounded-full bg-secondary shadow-inner",
+          sizeStyles[size],
+          className
+        )}
+        {...props}
+      >
+        <ProgressPrimitive.Indicator
+          className={cn(
+            "h-full w-full flex-1 transition-all duration-1000 ease-out relative overflow-hidden",
+            gradient ? gradientStyles[variant] : variantStyles[variant],
+            animated && "animate-pulse"
+          )}
+          style={{ transform: `translateX(-${100 - displayValue}%)` }}
+        >
+          {gradient && (
+            <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/40 to-white/20 animate-shimmer" />
+          )}
+          {animated && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-slide" />
+          )}
+        </ProgressPrimitive.Indicator>
+      </ProgressPrimitive.Root>
+      
+      {showPercentage && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <span className="text-xs font-bold text-white drop-shadow-md">
+            {Math.round(displayValue)}%
+          </span>
+        </div>
+      )}
+    </div>
+  )
+})
+
+Progress.displayName = ProgressPrimitive.Root.displayName
 
 const ResumeRanker = () => {
   const [resumeFiles, setResumeFiles] = useState<ResumeFile[]>([]);
