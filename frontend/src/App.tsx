@@ -2,15 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Progress } from "./components/ui/progress"; // Ensure this path is correct
 import {
-  Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy,
-  Sparkles, Crown, CheckCircle, Target, BarChart3, Brain, ArrowRight, Rocket,
+  Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy, 
+  Sparkles, Crown, CheckCircle, Target, BarChart3, Brain, ArrowRight, Rocket, 
   Sun, Moon, Monitor, ArrowUp, Zap, Star, Award, Eye, EyeOff, Heart, Users, Clock
 } from 'lucide-react';
 
 const queryClient = new QueryClient();
-const BACKEND_URL = 'http://localhost:8000'; // Make sure your backend is running on this URL
+const BACKEND_URL = 'http://localhost:8000';
 
 interface ResumeFile {
   id: string;
@@ -29,6 +28,45 @@ interface RankedResume {
 }
 
 type Theme = 'light' | 'dark' | 'system';
+
+// Simple Progress Component
+const Progress = ({ value = 0, className = "", showPercentage = false, variant = "default", animated = false }: {
+  value?: number;
+  className?: string;
+  showPercentage?: boolean;
+  variant?: "default" | "success" | "warning" | "error";
+  animated?: boolean;
+}) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setDisplayValue(value), 100);
+    return () => clearTimeout(timer);
+  }, [value]);
+
+  const colors = {
+    default: "bg-blue-500",
+    success: "bg-green-500", 
+    warning: "bg-yellow-500",
+    error: "bg-red-500"
+  };
+
+  return (
+    <div className={`relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden ${className}`}>
+      <div 
+        className={`h-full transition-all duration-1000 ease-out ${colors[variant]} ${animated ? 'animate-pulse' : ''}`}
+        style={{ width: `${displayValue}%` }}
+      />
+      {showPercentage && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-xs font-bold text-white drop-shadow-md">
+            {Math.round(displayValue)}%
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ResumeRanker = () => {
   const [resumeFiles, setResumeFiles] = useState<ResumeFile[]>([]);
@@ -55,7 +93,7 @@ const ResumeRanker = () => {
 
   const applyTheme = (newTheme: Theme) => {
     let shouldBeDark = false;
-
+    
     if (newTheme === 'dark') {
       shouldBeDark = true;
     } else if (newTheme === 'light') {
@@ -63,7 +101,7 @@ const ResumeRanker = () => {
     } else {
       shouldBeDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
-
+    
     setIsDark(shouldBeDark);
     document.documentElement.classList.toggle('dark', shouldBeDark);
     localStorage.setItem('theme', newTheme);
@@ -266,7 +304,6 @@ const ResumeRanker = () => {
 
     const formData = new FormData();
     formData.append('jd_file', jobDescriptionFile);
-    resumeFiles.forEach(resume => formData.append('resume_ids', resume.id)); // Send resume IDs
 
     try {
       const response = await fetch(`${BACKEND_URL}/rank_resumes/`, {
@@ -283,11 +320,11 @@ const ResumeRanker = () => {
       const rankedData = data.ranked_resumes.map((r: any) => ({ ...r, showFeedback: false }));
       setRankedResumes(rankedData);
       setJobDescriptionText(data.job_description_text);
-
+      
       if (rankedData.length > 0 && rankedData[0].score < 0.2) {
         triggerConfetti();
       }
-
+      
       toast.success('Resumes ranked successfully!');
     } catch (error: any) {
       toast.error(`Error ranking resumes: ${error.message}`);
@@ -402,593 +439,592 @@ const ResumeRanker = () => {
           >
             <ThemeIcon className="w-5 h-5" />
           </motion.div>
-
+          
           <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
-            {['light', 'dark', 'system'].map((t, index) => (
-              <motion.div
+            {['light', 'dark', 'system'].map((t, i) => (
+              <div
                 key={t}
-                className={`w-1 h-1 rounded-full transition-colors ${
-                  theme === t ? 'bg-white' : 'bg-white/40'
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  theme === t ? 'bg-white' : 'bg-white/30'
                 }`}
-                animate={{
-                  scale: theme === t ? 1.2 : 1,
-                  opacity: theme === t ? 1 : 0.6
-                }}
               />
             ))}
           </div>
         </motion.button>
       </motion.div>
 
-      {/* Scroll to Top Button */}
-      <AnimatePresence>
-        {isScrollToTopVisible && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-40 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <ArrowUp className="w-6 h-6" />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      {/* Confetti */}
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className={`absolute w-2 h-2 ${
-                ['bg-yellow-400', 'bg-pink-400', 'bg-blue-400', 'bg-green-400', 'bg-purple-400'][i % 5]
-              } rounded-full`}
-              initial={{
-                x: Math.random() * window.innerWidth,
-                y: -10,
-                rotate: 0,
-                scale: 0
-              }}
-              animate={{
-                y: window.innerHeight + 10,
-                rotate: 360,
-                scale: [0, 1, 0]
-              }}
-              transition={{
-                duration: 3,
-                delay: Math.random() * 2,
-                ease: "easeOut"
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      <div className="relative z-10 p-4 sm:p-8 font-sans text-gray-800 dark:text-gray-200">
-        <Toaster position="top-center" />
-
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header */}
-        <motion.div
+        <motion.div 
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center mb-16 pt-8"
+          className="text-center py-16 px-4"
         >
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, type: "spring", stiffness: 150 }}
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white px-8 py-3 rounded-full text-sm font-bold mb-6 shadow-2xl hover:shadow-yellow-500/25 transition-all duration-300 cursor-default"
-          >
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Crown className="w-5 h-5" />
-            </motion.div>
-            Ollama-Powered Resume Intelligence
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Sparkles className="w-4 h-4" />
-            </motion.div>
-          </motion.div>
-
-          <motion.h1
-            className="text-6xl sm:text-8xl font-black mb-6 tracking-tight"
+          <motion.div 
+            className="inline-flex items-center gap-3 mb-6"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <span className="bg-gradient-to-r from-slate-800 via-blue-700 to-indigo-800 dark:from-slate-200 dark:via-blue-300 dark:to-indigo-200 bg-clip-text text-transparent drop-shadow-2xl">
+            <div className="relative">
+              <Trophy className="w-12 h-12 text-amber-400" />
+              <div className="absolute -inset-1 bg-amber-400/20 rounded-full blur animate-pulse"></div>
+            </div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
               Resume Ranker
-            </span>
-            <motion.span
-              className="text-4xl sm:text-5xl block mt-3 font-light bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 dark:from-purple-400 dark:via-pink-400 dark:to-red-400 bg-clip-text text-transparent"
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-            >
-              Pro
-            </motion.span>
-          </motion.h1>
-
-          <motion.p
-            className="text-xl sm:text-2xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
+            </h1>
+            <div className="relative">
+              <Sparkles className="w-12 h-12 text-pink-400" />
+              <div className="absolute -inset-1 bg-pink-400/20 rounded-full blur animate-pulse"></div>
+            </div>
+          </motion.div>
+          
+          <motion.p 
+            className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
           >
-            Discover which resumes best match your job description using{' '}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent font-bold">
-              advanced AI semantic analysis
-            </span>
+            Harness the power of AI to rank resumes with precision and uncover the perfect candidates for your team. 
+            Experience intelligent matching that goes beyond keywords.
           </motion.p>
 
+          {/* Overall Progress */}
           <motion.div
-            className="flex justify-center gap-8 mt-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="max-w-2xl mx-auto mb-8"
           >
-            {[
-              { icon: Target, label: "Precision", value: "95%" },
-              { icon: Zap, label: "Speed", value: "<10s" },
-              { icon: Brain, label: "AI-Powered", value: "Ollama" }
-            ].map((stat, idx) => (
-              <motion.div
-                key={stat.label}
-                className="text-center"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-4 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 mb-2">
-                  <stat.icon className="w-6 h-6 mx-auto text-blue-600 dark:text-blue-400 mb-1" />
-                  <div className="text-lg font-bold text-gray-800 dark:text-gray-200">{stat.value}</div>
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">{stat.label}</div>
-              </motion.div>
-            ))}
+            <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-gray-700/50">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Overall Progress</span>
+                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{overallProgress}%</span>
+              </div>
+              <Progress 
+                value={overallProgress} 
+                variant="default"
+                animated={overallProgress > 0 && overallProgress < 100}
+                className="h-3"
+              />
+            </div>
           </motion.div>
         </motion.div>
 
-        {/* Progress Section */}
-        <motion.div
-          className="max-w-6xl mx-auto mb-16"
-          initial={{ opacity: 0, y: -20 }}
+        {/* Progress Steps */}
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="max-w-6xl mx-auto px-4 mb-12"
         >
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-3xl shadow-2xl p-8">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 text-center"
-            >
-              <div className="flex items-center justify-center gap-3 mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {progressSteps.map((step, index) => {
+              const IconComponent = step.icon;
+              const isActive = index === currentStep;
+              const isCompleted = step.completed;
+              
+              return (
                 <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  key={step.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 * index }}
+                  className={`relative p-6 rounded-2xl border backdrop-blur-xl transition-all duration-300 ${
+                    isCompleted 
+                      ? 'bg-green-500/10 border-green-500/30 dark:bg-green-900/20' 
+                      : isActive
+                        ? 'bg-blue-500/10 border-blue-500/30 dark:bg-blue-900/20'
+                        : 'bg-white/10 border-white/20 dark:bg-gray-800/50 dark:border-gray-700/50'
+                  }`}
                 >
-                  <Sparkles className="w-6 h-6 text-purple-500" />
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`p-2 rounded-lg ${
+                      isCompleted 
+                        ? 'bg-green-500/20 text-green-600 dark:text-green-400' 
+                        : isActive
+                          ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
+                          : 'bg-gray-500/20 text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {isCompleted ? <CheckCircle className="w-6 h-6" /> : <IconComponent className="w-6 h-6" />}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-200">{step.label}</h3>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Step {index + 1}</span>
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{step.description}</p>
+                  
+                  <Progress 
+                    value={step.progress} 
+                    variant={isCompleted ? "success" : "default"}
+                    className="h-2"
+                  />
+                  
+                  {isCompleted && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-2 -right-2"
+                    >
+                      <div className="bg-green-500 text-white rounded-full p-1">
+                        <CheckCircle className="w-4 h-4" />
+                      </div>
+                    </motion.div>
+                  )}
                 </motion.div>
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Smart Progress Tracker
-                </h3>
-                <Trophy className="w-6 h-6 text-yellow-500" />
-              </div>
-
-              <div className="max-w-md mx-auto">
-                <Progress
-                  value={overallProgress}
-                  className="h-3 shadow-lg"
-                />
-                <motion.p
-                  className="text-sm text-gray-600 dark:text-gray-400 mt-2"
-                  animate={{ opacity: [0.7, 1, 0.7] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  {overallProgress === 100 ? '🎉 All steps completed!' : `${progressSteps.filter(s => s.completed).length} of ${progressSteps.length} steps completed`}
-                </motion.p>
-              </div>
-            </motion.div>
-
-            {/* Progress Steps */}
-            <div className="relative">
-              <div className="absolute top-8 left-8 right-8 h-1 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-full">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full shadow-lg"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${overallProgress}%` }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                />
-              </div>
-
-              <div className="relative flex justify-between items-start">
-                {progressSteps.map((step, index) => (
-                  <motion.div
-                    key={step.id}
-                    className="flex flex-col items-center flex-1 group"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1, duration: 0.4 }}
-                  >
-                    <motion.div
-                      className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all duration-500 ${
-                        step.completed
-                          ? 'bg-gradient-to-br from-green-400 to-emerald-500 border-green-300 shadow-lg shadow-green-500/25'
-                          : index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
-                          ? 'bg-gradient-to-br from-blue-400 to-purple-500 border-blue-300 shadow-lg shadow-blue-500/25 animate-pulse'
-                          : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
-                      }`}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <AnimatePresence mode="wait">
-                        {step.completed ? (
-                          <motion.div
-                            key="completed"
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            exit={{ scale: 0, rotate: 180 }}
-                            transition={{ type: "spring", stiffness: 200 }}
-                          >
-                            <CheckCircle className="w-8 h-8 text-white" />
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            key="icon"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0 }}
-                            className={`${
-                              index === (currentStep >= 0 ? currentStep : progressSteps.length - 1) ? 'text-white' : 'text-gray-500 dark:text-gray-400'
-                            }`}
-                          >
-                            <step.icon className="w-6 h-6" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-
-                    <motion.div
-                      className="mt-4 text-center max-w-[120px]"
-                      animate={{
-                        y: index === (currentStep >= 0 ? currentStep : progressSteps.length - 1) ? [0, -2, 0] : 0
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: index === (currentStep >= 0 ? currentStep : progressSteps.length - 1) ? Infinity : 0,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <h4 className={`text-sm font-semibold transition-colors ${
-                        step.completed
-                          ? 'text-green-600 dark:text-green-400'
-                          : index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
-                          ? 'text-blue-600 dark:text-blue-400'
-                          : 'text-gray-600 dark:text-gray-400'
-                      }`}>
-                        {step.label}
-                      </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 leading-tight">
-                        {step.description}
-                      </p>
-                    </motion.div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+              );
+            })}
           </div>
         </motion.div>
 
         {/* File Upload Section */}
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
-          {/* Job Description Upload */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="group"
-          >
-            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl border border-blue-200/50 dark:border-blue-700/50 p-8 rounded-3xl shadow-2xl hover:shadow-blue-200/50 dark:hover:shadow-blue-800/50 transition-all duration-500 hover:scale-[1.02]">
+        <div className="max-w-6xl mx-auto px-4 mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Job Description Upload */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-xl rounded-3xl p-8 border border-white/20 dark:border-gray-700/50"
+            >
               <div className="flex items-center gap-3 mb-6">
-                <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-2xl shadow-lg">
-                  <FileText className="w-6 h-6 text-white" />
+                <div className="p-3 bg-blue-500/20 rounded-xl">
+                  <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-300">Job Description</h2>
-                  <p className="text-blue-600/80 dark:text-blue-400/80 text-sm">Upload the target job posting</p>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Job Description</h2>
+                  <p className="text-gray-600 dark:text-gray-400">Upload the role requirements</p>
                 </div>
               </div>
 
-              <label
-                htmlFor="jd-upload"
-                className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-2xl cursor-pointer bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50 hover:from-blue-100/50 hover:to-indigo-100/50 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 transition-all duration-300 group-hover:border-blue-400"
-              >
-                <div className="flex flex-col items-center justify-center py-6">
+              <div className="space-y-4">
+                {!jobDescriptionFile ? (
                   <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative"
                   >
-                    <Upload className="w-10 h-10 text-blue-500 dark:text-blue-400 mb-3" />
-                  </motion.div>
-                  <p className="mb-2 text-lg font-semibold text-blue-700 dark:text-blue-300">
-                    Drop your job description here
-                  </p>
-                  <p className="text-sm text-blue-500 dark:text-blue-400">PDF format • Max 5MB</p>
-                </div>
-                <input
-                  id="jd-upload"
-                  type="file"
-                  className="hidden"
-                  accept=".pdf"
-                  onChange={handleJobDescriptionFileChange}
-                  ref={jdFileInputRef}
-                />
-              </label>
-
-              <AnimatePresence>
-                {jobDescriptionFile && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0, y: -10 }}
-                    animate={{ opacity: 1, height: 'auto', y: 0 }}
-                    exit={{ opacity: 0, height: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
-                    className="mt-6 p-4 bg-gradient-to-r from-blue-100/80 to-indigo-100/80 dark:from-blue-900/80 dark:to-indigo-900/80 rounded-2xl flex items-center justify-between border border-blue-200/50 dark:border-blue-700/50 shadow-md"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="bg-blue-500 p-2 rounded-lg">
-                        <FileText className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="font-medium text-blue-800 dark:text-blue-200 truncate">{jobDescriptionFile.name}</span>
+                    <input
+                      type="file"
+                      ref={jdFileInputRef}
+                      onChange={handleJobDescriptionFileChange}
+                      accept=".pdf"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div className="p-8 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-2xl text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors duration-300 bg-blue-50/50 dark:bg-blue-900/20">
+                      <Upload className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+                      <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Click to upload Job Description
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        PDF files only, up to 10MB
+                      </p>
                     </div>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={handleClearJobDescription}
-                      className="ml-2 text-blue-600 dark:text-blue-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50"
-                      title="Clear Job Description"
-                    >
-                      <XCircle className="w-5 h-5" />
-                    </motion.button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-6 bg-green-50/50 dark:bg-green-900/20 rounded-2xl border border-green-200 dark:border-green-700"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        <div>
+                          <p className="font-medium text-gray-800 dark:text-gray-200">{jobDescriptionFile.name}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {(jobDescriptionFile.size / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={handleClearJobDescription}
+                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
+                      >
+                        <XCircle className="w-5 h-5" />
+                      </motion.button>
+                    </div>
                   </motion.div>
                 )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
+              </div>
+            </motion.div>
 
-          {/* Resumes Upload */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="group"
-          >
-            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl border border-purple-200/50 dark:border-purple-700/50 p-8 rounded-3xl shadow-2xl hover:shadow-purple-200/50 dark:hover:shadow-purple-800/50 transition-all duration-500 hover:scale-[1.02]">
+            {/* Resume Upload */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-xl rounded-3xl p-8 border border-white/20 dark:border-gray-700/50"
+            >
               <div className="flex items-center gap-3 mb-6">
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-2xl shadow-lg">
-                  <FileText className="w-6 h-6 text-white" />
+                <div className="p-3 bg-purple-500/20 rounded-xl">
+                  <Upload className="w-8 h-8 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-purple-800 dark:text-purple-300">Resume Collection</h2>
-                  <p className="text-purple-600/80 dark:text-purple-400/80 text-sm">Upload multiple resume files</p>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Resumes</h2>
+                  <p className="text-gray-600 dark:text-gray-400">Upload candidate files</p>
                 </div>
               </div>
 
-              <label
-                htmlFor="resume-upload"
-                className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-purple-300 dark:border-purple-600 rounded-2xl cursor-pointer bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/50 dark:to-pink-950/50 hover:from-purple-100/50 hover:to-pink-100/50 dark:hover:from-purple-900/50 dark:hover:to-pink-900/50 transition-all duration-300 group-hover:border-purple-400"
-              >
-                <div className="flex flex-col items-center justify-center py-6">
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <Upload className="w-10 h-10 text-purple-500 dark:text-purple-400 mb-3" />
-                  </motion.div>
-                  <p className="mb-2 text-lg font-semibold text-purple-700 dark:text-purple-300">
-                    Drop resumes here (or click)
-                  </p>
-                  <p className="text-sm text-purple-500 dark:text-purple-400">PDF format • Multiple files</p>
-                </div>
-                <input
-                  id="resume-upload"
-                  type="file"
-                  className="hidden"
-                  accept=".pdf"
-                  multiple
-                  onChange={handleResumeFileChange}
-                  ref={resumeFileInputRef}
-                />
-              </label>
-
-              <AnimatePresence>
-                {resumeFiles.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="mt-6 space-y-3 max-h-64 overflow-y-auto pr-2"
-                  >
-                    {resumeFiles.map((resume) => (
-                      <motion.div
-                        key={resume.id}
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.2 }}
-                        className="p-3 bg-gradient-to-r from-purple-100/80 to-pink-100/80 dark:from-purple-900/80 dark:to-pink-900/80 rounded-2xl flex items-center justify-between border border-purple-200/50 dark:border-purple-700/50 shadow-md"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="bg-purple-500 p-2 rounded-lg">
-                            <FileText className="w-4 h-4 text-white" />
-                          </div>
-                          <span className="font-medium text-purple-800 dark:text-purple-200 truncate">{resume.file.name}</span>
-                        </div>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => handleRemoveResume(resume.id)}
-                          className="ml-2 text-purple-600 dark:text-purple-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50"
-                          title="Remove Resume"
-                        >
-                          <XCircle className="w-5 h-5" />
-                        </motion.button>
-                      </motion.div>
-                    ))}
-                    {isUploadingResumes && (
-                      <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center border border-gray-200 dark:border-gray-700 shadow-md animate-pulse">
-                        <Loader2 className="w-5 h-5 mr-2 text-gray-500 animate-spin" />
-                        <span className="text-gray-600 dark:text-gray-400">Uploading resumes...</span>
-                      </div>
+              <div className="space-y-4">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative"
+                >
+                  <input
+                    type="file"
+                    ref={resumeFileInputRef}
+                    onChange={handleResumeFileChange}
+                    accept=".pdf"
+                    multiple
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    disabled={isUploadingResumes}
+                  />
+                  <div className="p-8 border-2 border-dashed border-purple-300 dark:border-purple-600 rounded-2xl text-center hover:border-purple-400 dark:hover:border-purple-500 transition-colors duration-300 bg-purple-50/50 dark:bg-purple-900/20">
+                    {isUploadingResumes ? (
+                      <Loader2 className="w-12 h-12 text-purple-500 mx-auto mb-4 animate-spin" />
+                    ) : (
+                      <Upload className="w-12 h-12 text-purple-500 mx-auto mb-4" />
                     )}
-                  </motion.div>
+                    <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {isUploadingResumes ? 'Uploading...' : 'Click to upload Resumes'}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      PDF files only, multiple files supported
+                    </p>
+                  </div>
+                </motion.div>
+
+                {resumeFiles.length > 0 && (
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    <AnimatePresence>
+                      {resumeFiles.map((resume) => (
+                        <motion.div
+                          key={resume.id}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="p-4 bg-gray-50/50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <FileText className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                              <div>
+                                <p className="font-medium text-gray-800 dark:text-gray-200">{resume.file.name}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  {(resume.file.size / 1024).toFixed(1)} KB
+                                </p>
+                              </div>
+                            </div>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleRemoveResume(resume.id)}
+                              className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </motion.button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
                 )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
+              </div>
+            </motion.div>
+          </div>
         </div>
 
-        {/* Rank Resumes Button */}
+        {/* Rank Button */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="text-center mb-12"
         >
-          <button
+          <motion.button
             onClick={handleRankResumes}
-            disabled={!jobDescriptionFile || resumeFiles.length === 0 || isRanking || isUploadingResumes}
-            className={`px-12 py-5 rounded-full text-xl font-bold transition-all duration-300 transform flex items-center justify-center gap-3 mx-auto
-              ${
-                (!jobDescriptionFile || resumeFiles.length === 0 || isRanking || isUploadingResumes)
-                  ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed shadow-inner'
-                  : 'bg-gradient-to-r from-teal-500 to-emerald-600 text-white shadow-2xl hover:scale-105 hover:from-teal-600 hover:to-emerald-700 active:scale-95 active:shadow-lg'
-              }`}
-            whileHover={{ scale: (!jobDescriptionFile || resumeFiles.length === 0 || isRanking || isUploadingResumes) ? 1 : 1.05 }}
-            whileTap={{ scale: (!jobDescriptionFile || resumeFiles.length === 0 || isRanking || isUploadingResumes) ? 1 : 0.95 }}
+            disabled={!jobDescriptionFile || resumeFiles.length === 0 || isRanking}
+            className={`relative px-12 py-6 rounded-2xl font-bold text-lg transition-all duration-300 ${
+              !jobDescriptionFile || resumeFiles.length === 0 || isRanking
+                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white hover:shadow-2xl hover:shadow-indigo-500/25 dark:hover:shadow-blue-500/25'
+            }`}
+            whileHover={!isRanking && jobDescriptionFile && resumeFiles.length > 0 ? { scale: 1.05 } : {}}
+            whileTap={!isRanking && jobDescriptionFile && resumeFiles.length > 0 ? { scale: 0.95 } : {}}
           >
-            {isRanking ? (
-              <>
-                <Loader2 className="w-6 h-6 animate-spin" />
-                Analyzing Resumes...
-              </>
-            ) : (
-              <>
-                <BarChart3 className="w-6 h-6" />
-                Rank Resumes Now!
-                <ArrowRight className="w-6 h-6" />
-              </>
+            <div className="flex items-center gap-3">
+              {isRanking ? (
+                <>
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  Analyzing Resumes...
+                </>
+              ) : (
+                <>
+                  <Rocket className="w-6 h-6" />
+                  Start AI Analysis
+                  <ArrowRight className="w-6 h-6" />
+                </>
+              )}
+            </div>
+            
+            {!isRanking && jobDescriptionFile && resumeFiles.length > 0 && (
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 dark:from-blue-500/20 dark:to-purple-500/20 rounded-2xl blur-xl -z-10"></div>
             )}
-          </button>
-          <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm">
-            {isRanking ? "This might take a moment based on the number of resumes." : "Click to get instant rankings based on your job description."}
-          </p>
+          </motion.button>
         </motion.div>
 
-        {/* Ranked Resumes Display */}
+        {/* Results Section */}
         <AnimatePresence>
           {rankedResumes.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              className="max-w-6xl mx-auto"
+              exit={{ opacity: 0, y: -50 }}
+              transition={{ duration: 0.8 }}
+              className="max-w-6xl mx-auto px-4 mb-12"
             >
-              <h2 className="text-4xl font-extrabold text-center mb-10 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-lg">
-                <Trophy className="inline-block w-9 h-9 mr-3 mb-1 text-yellow-500" />
-                Top Candidates Ranked
-                <Trophy className="inline-block w-9 h-9 ml-3 mb-1 text-yellow-500" />
-              </h2>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-center mb-12"
+              >
+                <div className="inline-flex items-center gap-3 mb-4">
+                  <Trophy className="w-10 h-10 text-amber-500" />
+                  <h2 className="text-4xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
+                    Ranking Results
+                  </h2>
+                  <Crown className="w-10 h-10 text-amber-500" />
+                </div>
+                <p className="text-xl text-gray-600 dark:text-gray-300">
+                  AI-powered analysis complete! Here are your top candidates ranked by relevance.
+                </p>
+              </motion.div>
 
-              <div className="space-y-6">
+              <div className="grid gap-8">
                 {rankedResumes.map((resume, index) => (
                   <motion.div
                     key={resume.resume_id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    className={`relative p-8 rounded-3xl backdrop-blur-xl border transition-all duration-300 ${
+                      index === 0
+                        ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-300/30 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-700/30'
+                        : 'bg-white/10 dark:bg-gray-800/50 border-white/20 dark:border-gray-700/50'
+                    }`}
                   >
-                    <div className="flex items-center gap-4 w-full md:w-auto">
+                    {index === 0 && (
                       <motion.div
-                        className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-lg
-                          bg-gradient-to-br ${getScoreColor(resume.score, index)}`}
-                        initial={{ scale: 0.8 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 200, delay: index * 0.15 }}
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                        className="absolute -top-4 -left-4"
                       >
-                        {index + 1}
+                        <div className="bg-amber-500 text-white rounded-full p-3 shadow-lg">
+                          <Crown className="w-6 h-6" />
+                        </div>
                       </motion.div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                          {resume.filename}
-                          {index === 0 && <Award className="w-5 h-5 ml-2 text-yellow-500" />}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm">
-                          Score: <span className="font-semibold text-lg">{ (resume.score * 100).toFixed(2) }%</span>
-                        </p>
+                    )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      {/* Resume Info */}
+                      <div className="lg:col-span-2">
+                        <div className="flex items-start justify-between mb-6">
+                          <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-xl ${
+                              index === 0 
+                                ? 'bg-amber-500/20' 
+                                : index < 3 
+                                  ? 'bg-green-500/20' 
+                                  : 'bg-blue-500/20'
+                            }`}>
+                              <div className="text-2xl font-bold">
+                                {index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '📄'}
+                              </div>
+                            </div>
+                            <div>
+                              <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-1">
+                                {resume.filename}
+                              </h3>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                  Rank #{index + 1}
+                                </span>
+                                <span className="text-gray-400">•</span>
+                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                  Match Score: {(100 - resume.score * 100).toFixed(1)}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mb-6">
+                          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                            Key Highlights
+                          </h4>
+                          <div className="p-4 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl">
+                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                              {resume.snippet}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Feedback Section */}
+                        <div className="space-y-4">
+                          <div className="flex gap-3">
+                            <motion.button
+                              onClick={() => handleGetLLMFeedback(resume)}
+                              disabled={feedbackLoadingResumeId === resume.resume_id}
+                              className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-600 dark:text-blue-400 rounded-xl transition-colors duration-200 font-medium"
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              {feedbackLoadingResumeId === resume.resume_id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Brain className="w-4 h-4" />
+                              )}
+                              {feedbackLoadingResumeId === resume.resume_id ? 'Generating...' : 'AI Feedback'}
+                            </motion.button>
+
+                            {resume.feedback && (
+                              <>
+                                <motion.button
+                                  onClick={() => toggleFeedbackVisibility(resume.resume_id)}
+                                  className="flex items-center gap-2 px-4 py-2 bg-gray-500/20 hover:bg-gray-500/30 text-gray-600 dark:text-gray-400 rounded-xl transition-colors duration-200 font-medium"
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                >
+                                  {resume.showFeedback ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                  {resume.showFeedback ? 'Hide' : 'Show'}
+                                </motion.button>
+
+                                <motion.button
+                                  onClick={() => handleDownloadFeedback(resume.feedback!, resume.filename)}
+                                  className="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-600 dark:text-green-400 rounded-xl transition-colors duration-200 font-medium"
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                >
+                                  <Download className="w-4 h-4" />
+                                  Download
+                                </motion.button>
+                              </>
+                            )}
+                          </div>
+
+                          <AnimatePresence>
+                            {resume.feedback && resume.showFeedback && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="p-6 bg-blue-50/50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-700"
+                              >
+                                <div className="flex items-center gap-2 mb-4">
+                                  <MessageSquareText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                  <h5 className="font-semibold text-blue-800 dark:text-blue-300">AI Feedback</h5>
+                                </div>
+                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                  <pre className="whitespace-pre-wrap text-gray-700 dark:text-gray-300 leading-relaxed">
+                                    {resume.feedback}
+                                  </pre>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="w-full md:flex-1 md:ml-8">
-                      <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Key Match Snippet:</h4>
-                      <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed bg-gray-50 dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
-                        {resume.snippet || "No specific snippet available."}
-                      </p>
-                    </div>
+                      {/* Score Visualization */}
+                      <div className="lg:col-span-1">
+                        <div className="bg-gray-50/50 dark:bg-gray-700/30 rounded-2xl p-6">
+                          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">
+                            Match Analysis
+                          </h4>
+                          
+                          <div className="relative w-32 h-32 mx-auto mb-6">
+                            <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
+                              <path
+                                d="M18 2.0845
+                                  a 15.9155 15.9155 0 0 1 0 31.831
+                                  a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeDasharray={`${100 - resume.score * 100}, 100`}
+                                className={`text-gradient ${getScoreColor(resume.score, index)}`}
+                              />
+                              <path
+                                d="M18 2.0845
+                                  a 15.9155 15.9155 0 0 1 0 31.831
+                                  a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeDasharray="100, 100"
+                                className="text-gray-200 dark:text-gray-700"
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                                  {(100 - resume.score * 100).toFixed(0)}%
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">Match</div>
+                              </div>
+                            </div>
+                          </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-                      <motion.button
-                        onClick={() => handleGetLLMFeedback(resume)}
-                        disabled={feedbackLoadingResumeId === resume.resume_id || !jobDescriptionText}
-                        className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300
-                          ${feedbackLoadingResumeId === resume.resume_id
-                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:from-blue-600 hover:to-teal-600 shadow-md hover:shadow-lg'
-                          }`}
-                        whileHover={{ scale: feedbackLoadingResumeId === resume.resume_id ? 1 : 1.05 }}
-                        whileTap={{ scale: feedbackLoadingResumeId === resume.resume_id ? 1 : 0.95 }}
-                      >
-                        {feedbackLoadingResumeId === resume.resume_id ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <MessageSquareText className="w-4 h-4" />
-                            Get AI Feedback
-                          </>
-                        )}
-                      </motion.button>
-                      {resume.feedback && (
-                        <motion.button
-                          onClick={() => toggleFeedbackVisibility(resume.resume_id)}
-                          className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-400 to-pink-500 text-white hover:from-orange-500 hover:to-pink-600 shadow-md hover:shadow-lg transition-all duration-300"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          {resume.showFeedback ? (
-                            <>
-                              <EyeOff className="w-4 h-4" />
-                              Hide Feedback
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="w-4 h-4" />
-                              View Feedback
-                            </>
-                          )}
-                        </motion.button>
-                      )}
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-gray-600 dark:text-gray-400">Relevance</span>
+                              <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-4 h-4 ${
+                                      i < Math.ceil((100 - resume.score * 100) / 20)
+                                        ? 'text-amber-400 fill-current'
+                                        : 'text-gray-300 dark:text-gray-600'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+                              <div className="flex items-center justify-center gap-2 text-sm">
+                                {index === 0 && (
+                                  <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full font-medium">
+                                    Top Match
+                                  </span>
+                                )}
+                                {index > 0 && index < 3 && (
+                                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full font-medium">
+                                    Strong Match
+                                  </span>
+                                )}
+                                {index >= 3 && (
+                                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full font-medium">
+                                    Good Match
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -997,81 +1033,170 @@ const ResumeRanker = () => {
           )}
         </AnimatePresence>
 
-        {/* Feedback Modals/Display Area */}
-        <AnimatePresence>
-          {rankedResumes.map((resume) => (
-            resume.showFeedback && resume.feedback && (
-              <motion.div
-                key={`feedback-${resume.resume_id}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50"
-              >
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto relative border border-gray-200 dark:border-gray-700"
-                >
-                  <button
-                    onClick={() => toggleFeedbackVisibility(resume.resume_id)}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                  >
-                    <XCircle className="w-6 h-6" />
-                  </button>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                    <MessageSquareText className="w-6 h-6 mr-3 text-blue-600 dark:text-blue-400" />
-                    AI Feedback for {resume.filename}
-                  </h3>
-                  <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed overflow-auto">
-                    {/* Render feedback with line breaks */}
-                    {resume.feedback.split('\n').map((line, i) => (
-                      <p key={i} className="mb-2">{line}</p>
-                    ))}
-                  </div>
-                  <div className="flex justify-end mt-6">
-                    <motion.button
-                      onClick={() => handleDownloadFeedback(resume.feedback, resume.filename)}
-                      className="flex items-center gap-2 px-6 py-3 rounded-full text-white font-semibold bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 shadow-md hover:shadow-lg transition-all duration-300"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Download className="w-5 h-5" />
-                      Download Feedback
-                    </motion.button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )
-          ))}
-        </AnimatePresence>
-
         {/* Footer */}
         <motion.footer
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.0, duration: 0.5 }}
-          className="text-center mt-20 pb-8 text-gray-600 dark:text-gray-400 text-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 1 }}
+          className="relative z-10 mt-auto bg-white/5 dark:bg-gray-900/50 backdrop-blur-xl border-t border-white/10 dark:border-gray-700/50"
         >
-          <p>&copy; {new Date().getFullYear()} Resume Ranker Pro. All rights reserved.</p>
-          <p className="mt-2 flex items-center justify-center gap-1">
-            Made with <Heart className="w-4 h-4 text-red-500" /> by
-            <a href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-              Parth Chahvan
-            </a>
-          </p>
+          <div className="max-w-6xl mx-auto px-4 py-12">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="md:col-span-2">
+                <div className="flex items-center gap-3 mb-4">
+                  <Trophy className="w-8 h-8 text-amber-400" />
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                    Resume Ranker
+                  </h3>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                  Leverage cutting-edge AI technology to revolutionize your hiring process. 
+                  Identify top talent faster with intelligent resume analysis and ranking.
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="text-sm font-medium">AI-Powered</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                    <Zap className="w-5 h-5" />
+                    <span className="text-sm font-medium">Lightning Fast</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                    <Target className="w-5 h-5" />
+                    <span className="text-sm font-medium">Precision Matching</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Features</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <Brain className="w-4 h-4 text-purple-500" />
+                    <span className="text-sm">AI Analysis</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <BarChart3 className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm">Smart Ranking</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <MessageSquareText className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">Detailed Feedback</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <Download className="w-4 h-4 text-orange-500" />
+                    <span className="text-sm">Export Results</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Stats</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Resumes Analyzed</span>
+                    <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                      {resumeFiles.length}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Rankings Complete</span>
+                    <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                      {rankedResumes.length}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Feedback Generated</span>
+                    <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                      {rankedResumes.filter(r => r.feedback).length}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-white/10 dark:border-gray-700/50 mt-8 pt-8">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    © 2024 Resume Ranker. Built with AI precision.
+                  </p>
+                </div>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <Heart className="w-4 h-4 text-red-400" />
+                    <span>Made for recruiters</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <Users className="w-4 h-4 text-blue-400" />
+                    <span>Trusted by teams</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <Clock className="w-4 h-4 text-green-400" />
+                    <span>Save hours daily</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.footer>
+
+        {/* Scroll to Top Button */}
+        <AnimatePresence>
+          {isScrollToTopVisible && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={scrollToTop}
+              className="fixed bottom-8 right-8 z-50 p-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-full shadow-lg transition-colors duration-200"
+            >
+              <ArrowUp className="w-6 h-6" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        {/* Confetti Effect */}
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-50">
+            {[...Array(50)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-3 h-3 bg-gradient-to-br from-yellow-400 to-red-500 rounded"
+                initial={{
+                  x: Math.random() * window.innerWidth,
+                  y: -20,
+                  rotate: 0,
+                  scale: Math.random() * 0.5 + 0.5
+                }}
+                animate={{
+                  y: window.innerHeight + 20,
+                  rotate: 360,
+                  transition: {
+                    duration: Math.random() * 2 + 2,
+                    ease: "easeOut"
+                  }
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
+      <Toaster position="top-right" />
     </div>
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ResumeRanker />
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ResumeRanker />
+    </QueryClientProvider>
+  );
+};
 
 export default App;
