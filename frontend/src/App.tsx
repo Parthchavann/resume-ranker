@@ -6,7 +6,7 @@ import { Progress } from "./components/Progress";
 import {
   Upload, FileText, XCircle, Trash2, Loader2, Download, MessageSquareText, Trophy, 
   Sparkles, Crown, CheckCircle, Target, BarChart3, Brain, ArrowRight, Rocket, 
-  Sun, Moon, Monitor, ArrowUp, Zap, Star, Award, Eye, EyeOff, Heart, Users, Clock
+  Sun, Moon, Monitor, ArrowUp, Zap, Star, Award, Eye, EyeOff, Heart, Users, Clock, Mail
 } from 'lucide-react';
 
 const queryClient = new QueryClient();
