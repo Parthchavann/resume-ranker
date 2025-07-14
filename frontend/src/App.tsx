@@ -166,7 +166,7 @@ const ResumeRanker = () => {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.1, duration: 0.4 }}
-                  >
+                  </div>
                     <motion.div
                       className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all duration-500 ${
                         step.completed
@@ -177,7 +177,7 @@ const ResumeRanker = () => {
                       }`}
                       whileHover={{ scale: 1.1, rotate: 5 }}
                       whileTap={{ scale: 0.95 }}
-                    >
+                    </div>
                       <AnimatePresence mode="wait">
                         {step.completed ? (
                           <motion.div
@@ -186,7 +186,7 @@ const ResumeRanker = () => {
                             animate={{ scale: 1, rotate: 0 }}
                             exit={{ scale: 0, rotate: 180 }}
                             transition={{ type: "spring", stiffness: 200 }}
-                          >
+                          </div>
                             <CheckCircle className="w-8 h-8 text-white" />
                           </motion.div>
                         ) : (
@@ -198,7 +198,7 @@ const ResumeRanker = () => {
                             className={`${
                               index === (currentStep >= 0 ? currentStep : progressSteps.length - 1) ? 'text-white' : 'text-gray-500 dark:text-gray-400'
                             }`}
-                          >
+                          </div>
                             <step.icon className="w-6 h-6" />
                           </motion.div>
                         )}
@@ -215,14 +215,14 @@ const ResumeRanker = () => {
                         repeat: index === (currentStep >= 0 ? currentStep : progressSteps.length - 1) ? Infinity : 0,
                         ease: "easeInOut"
                       }}
-                    >
+                    </div>
                       <h4 className={`text-sm font-semibold transition-colors ${
                         step.completed 
                           ? 'text-green-600 dark:text-green-400' 
                           : index === (currentStep >= 0 ? currentStep : progressSteps.length - 1)
                           ? 'text-blue-600 dark:text-blue-400' 
                           : 'text-gray-600 dark:text-gray-400'
-                      }`}>
+                      }`}</h4>
                         {step.label}
                       </h4>
                       <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 leading-tight">
